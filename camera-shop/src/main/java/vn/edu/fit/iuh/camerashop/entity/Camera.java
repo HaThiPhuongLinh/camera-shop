@@ -44,6 +44,7 @@ public class Camera {
     private String videoResolution;
     private String battery;
     private float weight;
+    private boolean hot;
 
     @ElementCollection
     @CollectionTable(name = "camera_images", joinColumns = @JoinColumn(name = "camera_id"))

@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface VariantRepository extends JpaRepository<Variant, Integer> {
 
-    List<Variant> findVariantsByCameraId(Integer cameraId);
+    List<Variant> findByCameraId(Integer cameraId);
 
 }

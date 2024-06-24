@@ -6,6 +6,7 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
@@ -24,5 +25,9 @@ public class CartItem {
     private Variant variant;
 
     private int quantity;
+
+    public double getPrice() {
+        return variant.getPrice() * quantity;
+    }
 }
 

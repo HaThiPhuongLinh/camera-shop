@@ -7,6 +7,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
@@ -31,7 +32,6 @@ public class Variant {
     private int quantity;
     private double discount;
     private double price;
-    private boolean hot;
 
     @ElementCollection
     @CollectionTable(name = "variant_images", joinColumns = @JoinColumn(name = "variant_id"))

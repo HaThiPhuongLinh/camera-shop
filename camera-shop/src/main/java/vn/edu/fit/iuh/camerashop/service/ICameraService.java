@@ -7,13 +7,23 @@ import java.util.List;
 
 public interface ICameraService {
 
-    List<Camera> getAll();
+    List<Camera> getAllCameras();
 
-    Camera findById(long id);
+    Camera getCameraById(long id);
 
-    void add(CameraRequest request);
+    void saveCamera(CameraRequest request);
 
-    void update(long id, CameraRequest request);
+    void updateCamera(long id, CameraRequest request);
 
-    void delete(long id);
+    void deleteCamera(long id);
+
+    List<Camera> searchCamerasByName(String name);
+
+    List<Camera> getCamerasByBrandId(Integer brandId);
+
+    List<Camera> getCamerasByCategoryId(Integer categoryId);
+
+    List<Camera> getActiveCameras(boolean active);
+
+    List<Camera> getHotCameras(boolean hot);
 }

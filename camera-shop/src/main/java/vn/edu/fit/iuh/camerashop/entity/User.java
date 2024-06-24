@@ -10,7 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,7 +31,7 @@ public class User implements UserDetails {
     private String fullName;
     private String phone;
     private String address;
-    private LocalDateTime createAt ;
+    private LocalDate dateOfBirth;
     private Role role;
 
     @Override

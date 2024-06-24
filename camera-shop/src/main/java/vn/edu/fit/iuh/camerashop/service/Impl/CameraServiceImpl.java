@@ -29,17 +29,17 @@ public class CameraServiceImpl implements ICameraService {
     private FeatureServiceImpl featureServiceImpl;
 
     @Override
-    public List<Camera> getAll() {
+    public List<Camera> getAllCameras() {
         return cameraRepository.findAll();
     }
 
     @Override
-    public Camera findById(long id) {
+    public Camera getCameraById(long id) {
         return cameraRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Camera not found"));
     }
 
     @Override
-    public void add(CameraRequest request) {
+    public void saveCamera(CameraRequest request) {
         Brand brand = brandServiceImpl.findById(request.getBrandId());
 
         Category category = categoryServiceImpl.findById(request.getCategoryId());
@@ -72,8 +72,17 @@ public class CameraServiceImpl implements ICameraService {
     }
 
     @Override
-    public void update(long id, CameraRequest request) {
-        Camera camera = cameraRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Camera not found"));
+    public void updateCamera(long id, CameraRequest request) {
+        Camera camera = getCameraById(id);
+
+        Brand brand = brandServiceImpl.findById(request.getBrandId());
+
+        Category category = categoryServiceImpl.findById(request.getCategoryId());
+
+        List<Feature> features = request.getFeatures().stream()
+                .map(featureId -> featureServiceImpl.findById(featureId))
+                .collect(Collectors.toList());
+        camera.setFeatures(features);
 
         camera.setName(request.getName());
         camera.setWarrantyPeriod(request.getWarrantyPeriod());
@@ -88,22 +97,39 @@ public class CameraServiceImpl implements ICameraService {
         camera.setWeight(request.getWeight());
         camera.setImages(request.getImages());
         camera.setActive(request.isActive());
-
-        Brand brand = brandServiceImpl.findById(request.getBrandId());
-        Category category = categoryServiceImpl.findById(request.getCategoryId());
         camera.setBrand(brand);
         camera.setCategory(category);
-
-        List<Feature> features = request.getFeatures().stream()
-                .map(featureId -> featureServiceImpl.findById(featureId))
-                .collect(Collectors.toList());
-        camera.setFeatures(features);
 
         cameraRepository.save(camera);
     }
 
     @Override
-    public void delete(long id) {
+    public void deleteCamera(long id) {
         cameraRepository.deleteById((int) id);
+    }
+
+    @Override
+    public List<Camera> searchCamerasByName(String name) {
+        return cameraRepository.findByNameContaining(name);
+    }
+
+    @Override
+    public List<Camera> getCamerasByBrandId(Integer brandId) {
+        return cameraRepository.findByBrandId(brandId);
+    }
+
+    @Override
+    public List<Camera> getCamerasByCategoryId(Integer categoryId) {
+        return cameraRepository.findByCategoryId(categoryId);
+    }
+
+    @Override
+    public List<Camera> getActiveCameras(boolean active) {
+        return cameraRepository.findByActive(active);
+    }
+
+    @Override
+    public List<Camera> getHotCameras(boolean hot) {
+        return cameraRepository.findByHot(hot);
     }
 }

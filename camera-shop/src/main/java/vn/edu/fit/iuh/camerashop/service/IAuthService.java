@@ -7,6 +7,7 @@ import vn.edu.fit.iuh.camerashop.dto.response.AuthResponse;
 import vn.edu.fit.iuh.camerashop.entity.User;
 
 public interface IAuthService {
+
     AuthResponse login(AuthRequest authRequest);
 
     void register(RegistrationRequest registrationRequest);

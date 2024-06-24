@@ -1,19 +1,15 @@
 package vn.edu.fit.iuh.camerashop.dto.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDate;
 
-@Data
+@Getter
+@Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class RegistrationRequest {
+public class UserRequest {
     private String email;
-    private String password;
     private String fullName;
     private String phone;
     private String address;

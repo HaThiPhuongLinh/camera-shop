@@ -63,7 +63,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         if (registrationRequest.getAddress() == null){
-            infoMessage.put("address","address must be required.");
+            infoMessage.put("address","Address must be required.");
         }
 
         if (!infoMessage.isEmpty()){
@@ -80,7 +80,7 @@ public class AuthServiceImpl implements IAuthService {
                 .phone(registrationRequest.getPhone())
                 .address(registrationRequest.getAddress())
                 .role(Role.USER)
-                .createAt(LocalDateTime.now())
+                .dateOfBirth(registrationRequest.getDateOfBirth())
                 .build());
     }
 

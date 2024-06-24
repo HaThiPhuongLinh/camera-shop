@@ -33,6 +33,7 @@ public class BrandServiceImpl implements IBrandService {
                 .code(request.getCode())
                 .active(true)
                 .build();
+
         brandRepository.save(brand);
     }
 

@@ -6,6 +6,7 @@ import vn.edu.fit.iuh.camerashop.entity.User;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
