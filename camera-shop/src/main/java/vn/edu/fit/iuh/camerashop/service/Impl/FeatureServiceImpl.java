@@ -15,7 +15,6 @@ public class FeatureServiceImpl implements IFeatureService {
     @Autowired
     private FeatureRepository featureRepository;
 
-
     @Override
     public List<Feature> getAll() {
         return featureRepository.findAll();
@@ -38,7 +37,7 @@ public class FeatureServiceImpl implements IFeatureService {
 
     @Override
     public void update(long id, FeatureRequest request) {
-        Feature feature = featureRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Feature not found"));
+        Feature feature = findById(id);
 
         feature.setFeatureName(request.getFeatureName());
         feature.setCode(request.getCode());
@@ -46,8 +45,4 @@ public class FeatureServiceImpl implements IFeatureService {
         featureRepository.save(feature);
     }
 
-    @Override
-    public void delete(long id) {
-        featureRepository.deleteById((int) id);
-    }
 }

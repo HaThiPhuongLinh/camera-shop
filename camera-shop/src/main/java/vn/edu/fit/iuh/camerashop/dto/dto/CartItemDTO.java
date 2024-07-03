@@ -2,11 +2,7 @@ package vn.edu.fit.iuh.camerashop.dto.dto;
 
 import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
+@Data
 @Builder
 public class CartItemDTO {
     private long variantId;

@@ -1,12 +1,16 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.request.CameraRequest;
 import vn.edu.fit.iuh.camerashop.entity.Brand;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
 import vn.edu.fit.iuh.camerashop.entity.Category;
 import vn.edu.fit.iuh.camerashop.entity.Feature;
+import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 import vn.edu.fit.iuh.camerashop.exception.NotFoundException;
 import vn.edu.fit.iuh.camerashop.repository.CameraRepository;
 import vn.edu.fit.iuh.camerashop.service.ICameraService;
@@ -15,27 +19,40 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CameraServiceImpl implements ICameraService {
-    @Autowired
-    private CameraRepository cameraRepository;
 
-    @Autowired
-    private BrandServiceImpl brandServiceImpl;
-
-    @Autowired
-    private CategoryServiceImpl categoryServiceImpl;
-
-    @Autowired
-    private FeatureServiceImpl featureServiceImpl;
+    private final CameraRepository cameraRepository;
+    private final BrandServiceImpl brandServiceImpl;
+    private final CategoryServiceImpl categoryServiceImpl;
+    private final FeatureServiceImpl featureServiceImpl;
 
     @Override
     public List<Camera> getAllCameras() {
-        return cameraRepository.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+            return cameraRepository.findAll();
+        } else {
+            return cameraRepository.findByActiveIsTrue();
+        }
     }
 
     @Override
     public Camera getCameraById(long id) {
-        return cameraRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Camera not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Camera camera = cameraRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Camera not found"));
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+            return camera;
+        } else {
+            if (camera.isActive()) {
+                return camera;
+            } else {
+                throw new NotFoundException("Camera not found");
+            }
+        }
     }
 
     @Override
@@ -57,7 +74,7 @@ public class CameraServiceImpl implements ICameraService {
                 .description(request.getDescription())
                 .ISO(request.getISO())
                 .shootingSpeed(request.getShootingSpeed())
-                .imageStabilization(request.getImageStabilization())
+                .stabilization(request.getStabilization())
                 .resolution(request.getResolution())
                 .sensorType(request.getSensorType())
                 .videoResolution(request.getVideoResolution())
@@ -89,7 +106,7 @@ public class CameraServiceImpl implements ICameraService {
         camera.setDescription(request.getDescription());
         camera.setISO(request.getISO());
         camera.setShootingSpeed(request.getShootingSpeed());
-        camera.setImageStabilization(request.getImageStabilization());
+        camera.setStabilization(request.getStabilization());
         camera.setResolution(request.getResolution());
         camera.setSensorType(request.getSensorType());
         camera.setVideoResolution(request.getVideoResolution());
@@ -105,7 +122,9 @@ public class CameraServiceImpl implements ICameraService {
 
     @Override
     public void deleteCamera(long id) {
-        cameraRepository.deleteById((int) id);
+        Camera camera = getCameraById(id);
+        camera.setActive(false);
+        cameraRepository.save(camera);
     }
 
     @Override
@@ -124,8 +143,8 @@ public class CameraServiceImpl implements ICameraService {
     }
 
     @Override
-    public List<Camera> getActiveCameras(boolean active) {
-        return cameraRepository.findByActive(active);
+    public List<Camera> getActiveCameras() {
+        return cameraRepository.findByActiveIsTrue();
     }
 
     @Override

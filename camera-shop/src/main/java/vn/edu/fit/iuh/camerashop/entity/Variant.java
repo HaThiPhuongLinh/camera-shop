@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"camera_id", "source", "color", "style", "kit"})
+        @UniqueConstraint(columnNames = {"camera_id", "color", "style", "kit"})
 })
 public class Variant {
     @Id
@@ -36,4 +36,5 @@ public class Variant {
     @ElementCollection
     @CollectionTable(name = "variant_images", joinColumns = @JoinColumn(name = "variant_id"))
     private List<String> images;
+    private boolean active;
 }

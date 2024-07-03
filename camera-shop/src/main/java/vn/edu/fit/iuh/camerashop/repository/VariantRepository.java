@@ -9,4 +9,5 @@ public interface VariantRepository extends JpaRepository<Variant, Integer> {
 
     List<Variant> findByCameraId(Integer cameraId);
 
+    List<Variant> findByActiveIsTrue();
 }

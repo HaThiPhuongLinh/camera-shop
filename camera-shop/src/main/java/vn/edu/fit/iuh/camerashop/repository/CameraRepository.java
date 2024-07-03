@@ -6,13 +6,14 @@ import vn.edu.fit.iuh.camerashop.entity.Camera;
 import java.util.List;
 
 public interface CameraRepository extends JpaRepository<Camera, Integer> {
+
     List<Camera> findByNameContaining(String name);
 
     List<Camera> findByBrandId(Integer brandId);
 
     List<Camera> findByCategoryId(Integer categoryId);
 
-    List<Camera> findByActive(boolean active);
+    List<Camera> findByActiveIsTrue();
 
     List<Camera> findByHot(boolean hot);
 

@@ -5,6 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.config.service.JwtService;
 import vn.edu.fit.iuh.camerashop.dto.request.AuthRequest;
+import vn.edu.fit.iuh.camerashop.dto.request.CartRequest;
 import vn.edu.fit.iuh.camerashop.dto.request.RefreshTokenRequest;
 import vn.edu.fit.iuh.camerashop.dto.request.RegistrationRequest;
 import vn.edu.fit.iuh.camerashop.dto.response.AuthResponse;
@@ -22,8 +23,12 @@ import java.util.Map;
 public class AuthServiceImpl implements IAuthService {
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private CartServiceImpl cartService;
 
     @Override
     public AuthResponse login(AuthRequest authRequest) {
@@ -38,6 +43,13 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Password is incorrect");
 
         String token = jwtService.generateToken(user);
+
+        if (cartService.getCartByUserId(user.getId()) == null) {
+            CartRequest cartRequest = CartRequest.builder()
+                    .userId(user.getId())
+                    .build();
+            cartService.createCart(cartRequest);
+        }
 
         return AuthResponse.builder()
                 .token(token)
@@ -81,6 +93,7 @@ public class AuthServiceImpl implements IAuthService {
                 .address(registrationRequest.getAddress())
                 .role(Role.USER)
                 .dateOfBirth(registrationRequest.getDateOfBirth())
+                .status(true)
                 .build());
     }
 

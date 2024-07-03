@@ -5,11 +5,7 @@ import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
+@Data
 @Builder
 public class UserDTO {
     private long id;
@@ -19,4 +15,6 @@ public class UserDTO {
     private String address;
     private LocalDate dateOfBirth;
     private Role role;
+    private boolean status;
+
 }

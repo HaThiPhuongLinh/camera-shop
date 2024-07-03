@@ -1,22 +1,71 @@
 package vn.edu.fit.iuh.camerashop.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fit.iuh.camerashop.dto.request.CameraRequest;
+import vn.edu.fit.iuh.camerashop.dto.response.SuccessResponse;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
-import vn.edu.fit.iuh.camerashop.service.Impl.CameraServiceImpl;
+import vn.edu.fit.iuh.camerashop.service.ICameraService;
 
 import java.util.List;
 
-@RestController("/camera")
+@RestController
+@RequestMapping("/camera")
 public class CameraController {
     @Autowired
-    private CameraServiceImpl cameraService;
+    private ICameraService cameraService;
 
     @GetMapping
-    public List<Camera> getAllCamera() {
-        return cameraService.getAllCameras();
+    public ResponseEntity<List<Camera>> getAllCameras() {
+        return ResponseEntity.ok(cameraService.getAllCameras());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Camera> getCameraById(@PathVariable long id) {
+        return ResponseEntity.ok(cameraService.getCameraById(id));
+    }
 
+    @PostMapping
+    public ResponseEntity<SuccessResponse> saveCamera(@RequestBody CameraRequest request) {
+        cameraService.saveCamera(request);
+        return ResponseEntity.ok(new SuccessResponse("Created camera successfully"));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SuccessResponse> updateCamera(@PathVariable long id, @RequestBody CameraRequest request) {
+        cameraService.updateCamera(id, request);
+        return ResponseEntity.ok(new SuccessResponse("Updated camera successfully"));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<SuccessResponse> deleteCamera(@PathVariable long id) {
+        cameraService.deleteCamera(id);
+        return ResponseEntity.ok(new SuccessResponse("Deleted camera successfully"));
+    }
+
+    @GetMapping("/search/{name}")
+    public ResponseEntity<List<Camera>> searchCamerasByName(@PathVariable String name) {
+        return ResponseEntity.ok(cameraService.searchCamerasByName(name));
+    }
+
+    @GetMapping("/brand/{brandId}")
+    public ResponseEntity<List<Camera>> getCamerasByBrandId(@PathVariable Integer brandId) {
+        return ResponseEntity.ok(cameraService.getCamerasByBrandId(brandId));
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<Camera>> getCamerasByCategoryId(@PathVariable Integer categoryId) {
+        return ResponseEntity.ok(cameraService.getCamerasByCategoryId(categoryId));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<Camera>> getActiveCameras() {
+        return ResponseEntity.ok(cameraService.getActiveCameras());
+    }
+
+    @GetMapping("/hot/{hot}")
+    public ResponseEntity<List<Camera>> getHotCameras(@PathVariable boolean hot) {
+        return ResponseEntity.ok(cameraService.getHotCameras(hot));
+    }
 }

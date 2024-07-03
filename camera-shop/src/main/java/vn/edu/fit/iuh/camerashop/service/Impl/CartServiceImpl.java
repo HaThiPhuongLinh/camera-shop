@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.request.CartRequest;
@@ -15,15 +16,12 @@ import vn.edu.fit.iuh.camerashop.service.ICartService;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CartServiceImpl implements ICartService {
-    @Autowired
-    private CartRepository cartRepository;
 
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private UserServiceImpl userService;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final UserServiceImpl userService;
 
     @Override
     public Cart getCartByUserId(long userId) {
@@ -51,8 +49,10 @@ public class CartServiceImpl implements ICartService {
     }
 
     @Override
-    public void calculateTotalPrice(Cart cart) {
-        List<CartItem> cartItems = cartItemRepository.findByCartId((int) cart.getId());
+    public void calculateTotalPrice(long cartId) {
+        List<CartItem> cartItems = cartItemRepository.findByCartId((int) cartId);
+
+        Cart cart = getCartById(cartId);
 
         cart.setTotalItems(cartItems.size());
 
@@ -61,5 +61,11 @@ public class CartServiceImpl implements ICartService {
                 .sum());
 
         cartRepository.save(cart);
+    }
+
+    @Override
+    public Cart getCartById(long cartId) {
+        return cartRepository.findById((int) cartId)
+                .orElseThrow(() -> new NotFoundException("Cart not found"));
     }
 }

@@ -14,5 +14,4 @@ public interface IFeatureService {
 
     void update(long id, FeatureRequest request);
 
-    void delete(long id);
 }

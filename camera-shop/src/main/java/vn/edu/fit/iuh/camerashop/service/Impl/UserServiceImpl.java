@@ -1,19 +1,17 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.dto.UserDTO;
 import vn.edu.fit.iuh.camerashop.dto.request.UserRequest;
 import vn.edu.fit.iuh.camerashop.entity.User;
-import vn.edu.fit.iuh.camerashop.exception.BadRequestException;
+import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 import vn.edu.fit.iuh.camerashop.exception.NotFoundException;
 import vn.edu.fit.iuh.camerashop.repository.UserRepository;
 import vn.edu.fit.iuh.camerashop.service.IUserService;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -23,42 +21,49 @@ public class UserServiceImpl implements IUserService {
     @Override
     public List<UserDTO> getAll() {
         List<User> userList = userRepository.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        List<UserDTO> userDTOs = userList.stream()
-                .map(user -> UserDTO.builder()
-                        .id(user.getId())
-                        .email(user.getEmail())
-                        .fullName(user.getFullName())
-                        .phone(user.getPhone())
-                        .address(user.getAddress())
-                        .dateOfBirth(user.getDateOfBirth())
-                        .role(user.getRole())
-                        .build()
-                ).toList();
+        List<UserDTO> userDTOs = userList.stream().map(
+                        user -> getUserDTO(authentication, user))
+                .toList();
 
         return userDTOs;
     }
 
     @Override
     public UserDTO getById(long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User is not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = getUserById(id);
 
-        return UserDTO.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .phone(user.getPhone())
-                .address(user.getAddress())
-                .dateOfBirth(user.getDateOfBirth())
-                .role(user.getRole())
-                .build();
+        return getUserDTO(authentication, user);
+    }
+
+    private UserDTO getUserDTO(Authentication authentication, User user) {
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+            return UserDTO.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .phone(user.getPhone())
+                    .address(user.getAddress())
+                    .dateOfBirth(user.getDateOfBirth())
+                    .role(user.getRole())
+                    .status(user.isStatus())
+                    .build();
+        } else {
+            return UserDTO.builder()
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .phone(user.getPhone())
+                    .address(user.getAddress())
+                    .dateOfBirth(user.getDateOfBirth())
+                    .build();
+        }
     }
 
     @Override
     public User getUserById(long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User is not found"));
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User is not found"));
     }
 
     @Override
@@ -67,52 +72,23 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void add(UserRequest userRequest) {
-        Map<String, String> infoMessage = new HashMap<String, String>();
-
-        if (userRequest.getEmail() == null){
-            infoMessage.put("email","Email must be required.");
-        }
-        if (userRequest.getFullName() == null){
-            infoMessage.put("name","Name must be required.");
-        }
-        if (userRequest.getPhone() == null){
-            infoMessage.put("phone","Phone must be required.");
-        }
-        if (userRequest.getAddress() == null){
-            infoMessage.put("address","Address must be required.");
-        }
-        if (!infoMessage.isEmpty()){
-            throw new BadRequestException("Bad request", infoMessage);
-        }
-
-        User user = User.builder()
-                .fullName(userRequest.getFullName())
-                .email(userRequest.getEmail())
-                .phone(userRequest.getPhone())
-                .address(userRequest.getAddress())
-                .dateOfBirth(userRequest.getDateOfBirth())
-                .build();
-
-        userRepository.save(user);
-    }
-
-    @Override
-    public void update(long id, UserRequest userRequest) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User is not found"));
+    public void updateUser(long id, UserRequest userRequest) {
+        User user = getUserById(id);
 
         user.setFullName(userRequest.getFullName());
         user.setEmail(userRequest.getEmail());
         user.setPhone(userRequest.getPhone());
         user.setAddress(userRequest.getAddress());
         user.setDateOfBirth(userRequest.getDateOfBirth());
+        user.setStatus(user.isStatus());
 
         userRepository.save(user);
     }
 
     @Override
-    public void delete(long id) {
-         userRepository.deleteById(id);
+    public void deleteUser(long id) {
+        User user = getUserById(id);
+        user.setStatus(false);
+        userRepository.save(user);
     }
 }

@@ -33,6 +33,7 @@ public class User implements UserDetails {
     private String address;
     private LocalDate dateOfBirth;
     private Role role;
+    private boolean status;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -31,32 +31,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String token;
         final String email;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Authorization header is missing or does not start with Bearer");
+            filterChain.doFilter(request, response);
             return;
         }
 
         token = authHeader.substring(7);
-        log.info("Token: " + token);
+        log.info("Token: {}", token);
         email = jwtService.extractEmail(token);
-        log.info("Email from token: " + email);
+        log.info("Email from token: {}", email);
 
-        if (email != null || SecurityContextHolder.getContext().getAuthentication() == null){
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            if (jwtService.isTokenValid(token, userDetails)){
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            if (jwtService.isTokenValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         userDetails.getAuthorities()
                 );
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                securityContext.setAuthentication(authenticationToken);
-                SecurityContextHolder.setContext(securityContext);
-                log.info("ftc: "+ SecurityContextHolder.getContext().getAuthentication().getName());
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                log.info("Authentication successful for user: {}", email);
+            } else {
+                log.warn("Token is not valid");
             }
+        } else {
+            log.warn("Email is null or user already authenticated");
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
+
 

@@ -1,9 +1,11 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.dto.CartItemDTO;
 import vn.edu.fit.iuh.camerashop.dto.request.CartItemRequest;
+import vn.edu.fit.iuh.camerashop.entity.Cart;
 import vn.edu.fit.iuh.camerashop.entity.CartItem;
 import vn.edu.fit.iuh.camerashop.entity.CartItem_PK;
 import vn.edu.fit.iuh.camerashop.entity.Variant;
@@ -13,16 +15,16 @@ import vn.edu.fit.iuh.camerashop.service.ICartItemService;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CartItemServiceImpl implements ICartItemService {
-    @Autowired
-    private CartItemRepository cartItemRepository;
 
-    @Autowired
-    private VariantServiceImpl variantService;
+    private final CartItemRepository cartItemRepository;
+    private final VariantServiceImpl variantService;
+    private final CartServiceImpl cartService;
 
     @Override
     public CartItem getCartItemByCartIdAndVariantId(long cartId, long variantId) {
-        return (CartItem) cartItemRepository.findByCartIdAndVariantId(cartId, variantId);
+        return cartItemRepository.findByCartIdAndVariantId(cartId, variantId);
     }
 
     @Override
@@ -53,18 +55,25 @@ public class CartItemServiceImpl implements ICartItemService {
 
         if (existingCartItem != null) {
             existingCartItem.setQuantity(existingCartItem.getQuantity() + cartItemRequest.getQuantity());
+            cartService.calculateTotalPrice(cartItemRequest.getCartId());
             cartItemRepository.save(existingCartItem);
+            return;
         }
 
         Variant variant = variantService.getVariantById((int) cartItemRequest.getVariantId());
+        Cart cart = cartService.getCartById(cartItemRequest.getCartId());
 
         CartItem newCartItem = CartItem.builder()
-                .cartItem_pk(new CartItem_PK(cartItemRequest.getCartId(), cartItemRequest.getVariantId()))
+                .cartItem_pk(CartItem_PK.builder()
+                        .cart(cartItemRequest.getCartId())
+                        .variant(cartItemRequest.getVariantId()).build())
+                .cart(cart)
                 .variant(variant)
                 .quantity(cartItemRequest.getQuantity())
                 .build();
 
         cartItemRepository.save(newCartItem);
+        cartService.calculateTotalPrice(cartItemRequest.getCartId());
     }
 
     @Override
@@ -73,6 +82,7 @@ public class CartItemServiceImpl implements ICartItemService {
 
         if (cartItem != null) {
             cartItem.setQuantity(cartItemRequest.getQuantity());
+            cartService.calculateTotalPrice(cartItemRequest.getCartId());
             cartItemRepository.save(cartItem);
         }
     }
@@ -83,6 +93,7 @@ public class CartItemServiceImpl implements ICartItemService {
 
         if (cartItem != null) {
             cartItemRepository.delete(cartItem);
+            cartService.calculateTotalPrice(cartId);
         }
     }
 }

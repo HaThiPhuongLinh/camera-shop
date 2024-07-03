@@ -15,4 +15,5 @@ public interface IBrandService {
     void update(long id, BrandRequest request);
 
     void delete(long id);
+
 }

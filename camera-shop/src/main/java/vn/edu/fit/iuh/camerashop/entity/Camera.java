@@ -35,15 +35,19 @@ public class Camera {
     )
 
     private List<Feature> features;
+
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
+
     private String ISO;
     private String shootingSpeed;
-    private String imageStabilization;
+    private String stabilization;
     private String resolution;
     private String sensorType;
     private String videoResolution;
     private String battery;
-    private float weight;
+    private String weight;
+    private String size;
     private boolean hot;
 
     @ElementCollection

@@ -6,9 +6,10 @@ import vn.edu.fit.iuh.camerashop.entity.Order;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ItemStatusResponse {
     private Order order;
     private List<ItemState> state;

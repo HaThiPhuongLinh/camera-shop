@@ -19,6 +19,7 @@ public class Category {
     private long id;
 
     private String categoryName;
+    private String image;
     private String code;
     private boolean active;
 }

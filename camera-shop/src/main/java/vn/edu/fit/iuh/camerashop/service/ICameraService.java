@@ -23,7 +23,7 @@ public interface ICameraService {
 
     List<Camera> getCamerasByCategoryId(Integer categoryId);
 
-    List<Camera> getActiveCameras(boolean active);
+    List<Camera> getActiveCameras();
 
     List<Camera> getHotCameras(boolean hot);
 }

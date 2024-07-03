@@ -1,9 +1,12 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.request.BrandRequest;
 import vn.edu.fit.iuh.camerashop.entity.Brand;
+import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 import vn.edu.fit.iuh.camerashop.exception.NotFoundException;
 import vn.edu.fit.iuh.camerashop.repository.BrandRepository;
 import vn.edu.fit.iuh.camerashop.service.IBrandService;
@@ -17,12 +20,30 @@ public class BrandServiceImpl implements IBrandService {
 
     @Override
     public List<Brand> getAll() {
-        return brandRepository.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+            return brandRepository.findAll();
+        } else {
+            return brandRepository.findAllByActiveIsTrue();
+        }
     }
 
     @Override
     public Brand findById(long id) {
-        return brandRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Brand not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Brand brand = brandRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Brand not found"));
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+            return brand;
+        } else {
+            if (brand.isActive()) {
+                return brand;
+            } else {
+                throw new NotFoundException("Brand not found");
+            }
+        }
     }
 
     @Override
@@ -39,18 +60,21 @@ public class BrandServiceImpl implements IBrandService {
 
     @Override
     public void update(long id, BrandRequest request) {
-        Brand brand = brandRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Brand not found"));
+        Brand brand = findById(id);
 
         brand.setBrandName(request.getBrandName());
         brand.setImage(request.getImage());
         brand.setCode(request.getCode());
-        brand.setActive(true);
+        brand.setActive(request.isActive());
 
         brandRepository.save(brand);
     }
 
     @Override
     public void delete(long id) {
-        brandRepository.deleteById((int) id);
+        Brand brand = findById(id);
+        brand.setActive(false);
+        brandRepository.save(brand);
     }
+
 }

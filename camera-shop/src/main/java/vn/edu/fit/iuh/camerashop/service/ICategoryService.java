@@ -15,4 +15,5 @@ public interface ICategoryService {
     void update(long id, CategoryRequest request);
 
     void delete(long id);
+
 }

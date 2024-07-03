@@ -9,6 +9,7 @@ public interface ICartService {
 
     void createCart(CartRequest cartRequest);
 
-    void calculateTotalPrice(Cart cart);
+    void calculateTotalPrice(long cartId);
 
+    Cart getCartById(long cartId);
 }
