@@ -40,8 +40,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.cors(Customizer.withDefaults());
+
         httpSecurity.authorizeHttpRequests(request -> {
             request
+                    .requestMatchers(AUTH_WHITELIST).permitAll()
+
                     .requestMatchers("/auth/login",
                             "/auth/register")
                             .permitAll()
@@ -52,8 +55,6 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/variant/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/feature/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/review/**").permitAll()
-
-                    .requestMatchers(AUTH_WHITELIST).permitAll()
 
                     .requestMatchers(HttpMethod.POST, "/camera/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
                     .requestMatchers(HttpMethod.PUT, "/camera/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())

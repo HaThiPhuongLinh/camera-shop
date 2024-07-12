@@ -3,7 +3,7 @@ import Header from "../../components/Header";
 import {
   defaultMenuItems,
   socialIcons,
-} from "../../components/Header/constants";
+} from "../../constants/menuItems";
 import { Outlet } from "react-router-dom";
 
 const DefaultLayout = () => {

@@ -26,7 +26,7 @@ public class Review {
     @JoinColumn(name = "camera_id")
     private Camera camera;
 
-    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
     private int rating;
     private LocalDateTime createAt;

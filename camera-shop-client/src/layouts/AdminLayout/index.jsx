@@ -1,6 +1,6 @@
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import { adminMenuItems, socialIcons } from "../../components/Header/constants";
+import { adminMenuItems, socialIcons } from "../../constants/menuItems";
 import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {

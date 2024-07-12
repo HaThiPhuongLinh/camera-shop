@@ -23,21 +23,23 @@ public class ExcelDataImporterRunner implements CommandLineRunner {
     private final FeatureRepository featureRepository;
     private final CameraRepository cameraRepository;
     private final VariantRepository variantRepository;
+    private final PostRepository postRepository;
 
     @Override
     public void run(String... args) {
-        if (brandRepository.count() == 0 &&
-                categoryRepository.count() == 0 &&
-                cameraRepository.count() == 0 &&
-                featureRepository.count() == 0 &&
-                variantRepository.count() == 0) {
+        if (brandRepository.count() == 0 ||
+                categoryRepository.count() == 0 ||
+                cameraRepository.count() == 0 ||
+                featureRepository.count() == 0 ||
+                variantRepository.count() == 0 ||
+                postRepository.count() == 0) {
 
             try {
                 String filePath = "data.xlsx";
                 File file = getFileFromResources(filePath);
                 if (file.exists()) {
                     ExcelDataImporter importer = new ExcelDataImporter(
-                            brandRepository, categoryRepository, featureRepository, cameraRepository, variantRepository);
+                            brandRepository, categoryRepository, featureRepository, cameraRepository, variantRepository, postRepository);
                     importer.importDataFromExcel(file.getPath());
                 } else {
                     log.info("File {} does not exist.", filePath);

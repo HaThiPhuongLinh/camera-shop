@@ -1,6 +1,6 @@
 import FooterSection from "./FooterSection";
 import IconButton from "./IconButton";
-import { SocialMediaIcons } from "../Footer/constants";
+import { SocialMediaIcons } from "../../constants/socialMediaIcons";
 
 const Footer = () => {
   return (

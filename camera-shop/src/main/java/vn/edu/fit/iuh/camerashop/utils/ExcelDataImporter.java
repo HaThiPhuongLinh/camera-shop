@@ -10,6 +10,8 @@ import vn.edu.fit.iuh.camerashop.repository.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Slf4j
@@ -21,6 +23,7 @@ public class ExcelDataImporter {
     private final FeatureRepository featureRepository;
     private final CameraRepository cameraRepository;
     private final VariantRepository variantRepository;
+    private final PostRepository postRepository;
 
     public void importDataFromExcel(String filePath) throws IOException {
         FileInputStream fileInputStream = new FileInputStream(filePath);
@@ -33,6 +36,8 @@ public class ExcelDataImporter {
         importCameraData(workbook.getSheet("Camera"));
 
         importVariantData(workbook.getSheet("Variant"));
+
+        importPostData(workbook.getSheet("Post"));
     }
 
     private void importBrandData(Sheet sheet) {
@@ -50,6 +55,38 @@ public class ExcelDataImporter {
             brandRepository.save(brand);
         }
     }
+
+    private void importPostData(Sheet sheet) {
+        Iterator<Row> rowIterator = sheet.iterator();
+        rowIterator.next();
+
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Post post = new Post();
+            post.setId((int) row.getCell(0).getNumericCellValue());
+            post.setTitle(row.getCell(1).getStringCellValue());
+            post.setSummary(row.getCell(2).getStringCellValue());
+            post.setContent(row.getCell(3).getStringCellValue());
+            post.setAuthorName(row.getCell(4).getStringCellValue());
+
+            Cell dateCell = row.getCell(5);
+            Date publishedAt = null;
+            if (dateCell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(dateCell)) {
+                publishedAt = dateCell.getDateCellValue();
+            } else if (dateCell.getCellType() == CellType.STRING) {
+                try {
+                    publishedAt = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).parse(dateCell.getStringCellValue());
+                } catch (ParseException e) {
+                    log.error("Error: {}", e.getMessage());
+                }
+            }
+            post.setPublishedAt(publishedAt);
+
+            post.setImage(row.getCell(6).getStringCellValue());
+            postRepository.save(post);
+        }
+    }
+
 
     private void importCategoryData(Sheet sheet) {
         Iterator<Row> rowIterator = sheet.iterator();

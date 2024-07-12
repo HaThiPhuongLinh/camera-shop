@@ -27,7 +27,7 @@ const Header = ({ menuItems, socialIcons }) => {
           <div className="flex flex-col justify-center self-stretch my-auto">
             <div className="flex gap-7 justify-between px-5">
               {socialIcons.map((src, index) => (
-                <SocialIcon key={index} src={src} />
+                <SocialIcon key={index} src={src} index={index}/>
               ))}
             </div>
           </div>
