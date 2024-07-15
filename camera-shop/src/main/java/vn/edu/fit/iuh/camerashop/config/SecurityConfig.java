@@ -46,7 +46,8 @@ public class SecurityConfig {
                     .requestMatchers(AUTH_WHITELIST).permitAll()
 
                     .requestMatchers("/auth/login",
-                            "/auth/register")
+                            "/auth/register",
+                            "/email/**")
                             .permitAll()
 
                     .requestMatchers(HttpMethod.GET, "/camera/**").permitAll()

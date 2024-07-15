@@ -33,7 +33,7 @@ axiosClient.interceptors.response.use(
         }
         axios.interceptors.response.eject(axiosClient.interceptors);
         return axios
-            .post('/auth/refresh-token', {
+            .post('/auth/refreshToken', {
                 refreshToken,
             })
             .then((token) => {

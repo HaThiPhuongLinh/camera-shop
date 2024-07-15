@@ -7,7 +7,7 @@ const ProductCard = ({ imageSrc, isHot, productName, price }) => (
           loading="lazy"
           src={imageSrc}
           alt={productName}
-          className="object-cover absolute inset-0 size-full"
+          className="object-contain absolute inset-0 rounded-md"
         />
         {isHot && (
           <div className="flex relative flex-col justify-center mb-40 max-w-full w-[70px] max-md:mb-10">
@@ -19,16 +19,16 @@ const ProductCard = ({ imageSrc, isHot, productName, price }) => (
           </div>
         )}
       </div>
-      <div className="flex gap-5 justify-between mt-3.5">
+      <div className="flex gap-5 justify-between mt-2">
         <div className="flex flex-col text-left">
           <h2 className="text-xl font-medium tracking-wider">{productName}</h2>
-          <p className="mt-2.5 text-lg font-semibold tracking-wider">{price}</p>
+          <p className="mt-2 text-lg font-semibold tracking-wider">${price}</p>
         </div>
         <img
           loading="lazy"
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/1fa7fdf3826f61ec206571949c7fe319621c5addd29f67161b979502c40bfe07?apiKey=53e4b1c7e8314bb0af1a0d344422a86a&"
           alt=""
-          className="shrink-0 self-start w-9 aspect-square"
+        className="shrink-0 self-start w-9 aspect-square hover:cursor-pointer hover:border hover:border-red-700"
         />
       </div>
     </article>
@@ -39,7 +39,7 @@ const ProductCard = ({ imageSrc, isHot, productName, price }) => (
     imageSrc: PropTypes.string.isRequired,
     isHot: PropTypes.bool,
     productName: PropTypes.string.isRequired,
-    price: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
   };
 
 export default ProductCard;

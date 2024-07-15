@@ -18,4 +18,6 @@ public interface IVariantService {
     void deleteVariant(Integer id);
 
     List<Variant> getVariantsByCameraId(Integer cameraId);
+
+    List<Variant> getVariantsByHotCameras();
 }

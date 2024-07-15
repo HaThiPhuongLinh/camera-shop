@@ -13,6 +13,7 @@ import vn.edu.fit.iuh.camerashop.repository.VariantRepository;
 import vn.edu.fit.iuh.camerashop.service.IVariantService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VariantServiceImpl implements IVariantService {
@@ -100,5 +101,12 @@ public class VariantServiceImpl implements IVariantService {
     @Override
     public List<Variant> getVariantsByCameraId(Integer cameraId) {
         return variantRepository.findByCameraId(cameraId);
+    }
+
+    @Override
+    public List<Variant> getVariantsByHotCameras() {
+        return variantRepository.findAll().stream()
+                .filter(variant -> variant.getCamera().isHot() && variant.isActive())
+                .collect(Collectors.toList());
     }
 }

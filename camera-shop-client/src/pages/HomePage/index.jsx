@@ -53,9 +53,9 @@ const HomePage = () => {
             <BrandSection />
             <CategorySection />
           </section>
-          <section className="flex flex-col py-px mt-14 w-full max-w-[1204px] max-md:max-w-full">
+          <section className="flex flex-col py-px mt-7 w-full max-w-[1204px] max-md:max-w-full">
             <ProductSection />
-            <button className=" self-center w-1/5 flex justify-center p-3 mt-10 text-xl font-semibold tracking-wider text-white border-2 border-white border-solid shadow-sm max-md:px-5 max-md:mt-10">
+            <button className="self-center w-1/6 max-md:w-1/3 flex justify-center p-2 mt-10 text-base font-semibold tracking-wider text-white border-2 border-white border-solid shadow-sm max-md:px-5 max-md:mt-10 hover:bg-gray-700">
               SHOP ALL
             </button>
           </section>

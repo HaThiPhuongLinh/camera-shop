@@ -1,8 +1,43 @@
 import FooterSection from "./FooterSection";
 import IconButton from "./IconButton";
 import { SocialMediaIcons } from "../../constants/socialMediaIcons";
+import { useState } from "react";
+import emailApi from "../../api/emailApi";
 
 const Footer = () => {
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const emailInput = document.getElementById("emailInput");
+    const email = emailInput.value.trim();
+
+    if (!validateEmail(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      await emailApi.sendEmail(email);
+      setShowSuccessPopup(true);
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 4000);
+      emailInput.value = "";
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowSuccessPopup(false);
+  };
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
   return (
     <footer className="flex flex-col justify-center bg-zinc-100">
       <div className="flex flex-col items-center pt-5 pr-4 pb-3 pl-20 w-full bg-zinc-100 max-md:pl-5 max-md:max-w-full">
@@ -35,7 +70,7 @@ const Footer = () => {
         <p className="mt-5 text-sm font-semibold tracking-wider text-center text-black max-md:max-w-full">
           Get 20% off on your first order just by subscribing to our newslatter
         </p>
-        <form className="flex gap-2 mt-5 max-md:flex-wrap">
+        <form className="flex gap-2 mt-5 max-md:flex-wrap" onSubmit={handleSubmit}>
           <div className="flex flex-col grow shrink-0 justify-center text-base tracking-wider text-zinc-300 w-fit">
             <div className="flex gap-2 px-5 py-4 bg-white rounded-xl border border-solid border-zinc-300 border-opacity-90 w-[350px]">
               <img
@@ -53,10 +88,11 @@ const Footer = () => {
                 placeholder="Enter your email"
                 className="flex-auto bg-transparent border-none outline-none text-black"
                 aria-label="Enter your email"
+                required
               />
             </div>
           </div>
-          <button className="text-base tracking-wider text-white whitespace-nowrap px-4 py-4 bg-black rounded-xl border border-solid border-zinc-300 max-md:px-5">
+          <button type="submit" className="text-base tracking-wider text-white whitespace-nowrap px-4 py-4 bg-black rounded-xl border border-solid border-zinc-300 max-md:px-5">
             Subscribe
           </button>
         </form>
@@ -67,6 +103,21 @@ const Footer = () => {
           Copyright © 2024
         </p>
       </div>
+      {showSuccessPopup && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-5 rounded-md shadow-lg">
+            <h2 className="text-lg font-semibold text-green-500">
+              Thank you for subscribing!
+            </h2>
+            <button
+              className="mt-3 px-4 py-2 bg-gray-300 rounded-md"
+              onClick={handleClosePopup}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

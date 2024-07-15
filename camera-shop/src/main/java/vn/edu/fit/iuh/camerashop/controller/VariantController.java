@@ -21,6 +21,11 @@ public class VariantController {
         return ResponseEntity.ok(variantService.getAllVariants());
     }
 
+    @GetMapping("/hot")
+    public ResponseEntity<List<Variant>> getVariantsByHotCameras() {
+        return ResponseEntity.ok(variantService.getVariantsByHotCameras());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Variant> getVariantById(@PathVariable Integer id) {
         return ResponseEntity.ok(variantService.getVariantById(id));

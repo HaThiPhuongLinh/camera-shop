@@ -6,6 +6,11 @@ const variantApi = {
     return axiosClient.get(url);
   },
 
+  getVariantsByHotCameras: () => {
+    const url = '/variant/hot';
+    return axiosClient.get(url);
+  },
+
   getVariantById: (id) => {
     const url = `/variant/${id}`;
     return axiosClient.get(url);
