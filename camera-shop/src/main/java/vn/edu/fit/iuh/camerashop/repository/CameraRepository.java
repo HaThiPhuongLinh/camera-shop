@@ -9,6 +9,12 @@ public interface CameraRepository extends JpaRepository<Camera, Integer> {
 
     List<Camera> findByNameContaining(String name);
 
+    List<Camera> findByNameContainingAndActiveIsTrue(String name);
+
+    List<Camera> findByBrandIdAndActiveIsTrue(Integer brandId);
+
+    List<Camera> findByCategoryIdAndActiveIsTrue(Integer categoryId);
+
     List<Camera> findByBrandId(Integer brandId);
 
     List<Camera> findByCategoryId(Integer categoryId);
@@ -16,5 +22,7 @@ public interface CameraRepository extends JpaRepository<Camera, Integer> {
     List<Camera> findByActiveIsTrue();
 
     List<Camera> findByHot(boolean hot);
+
+    List<Camera> findByHotAndActiveIsTrue(boolean hot);
 
 }

@@ -56,3 +56,5 @@ public class Camera {
 
     private boolean active;
 }
+
+

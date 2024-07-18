@@ -18,11 +18,14 @@ public class BrandServiceImpl implements IBrandService {
     @Autowired
     private BrandRepository brandRepository;
 
+    private boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
+    }
+
     @Override
     public List<Brand> getAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin()) {
             return brandRepository.findAll();
         } else {
             return brandRepository.findAllByActiveIsTrue();
@@ -31,18 +34,12 @@ public class BrandServiceImpl implements IBrandService {
 
     @Override
     public Brand findById(long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         Brand brand = brandRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Brand not found"));
 
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin() || brand.isActive()) {
             return brand;
         } else {
-            if (brand.isActive()) {
-                return brand;
-            } else {
-                throw new NotFoundException("Brand not found");
-            }
+            throw new NotFoundException("Brand not found");
         }
     }
 
@@ -76,5 +73,4 @@ public class BrandServiceImpl implements IBrandService {
         brand.setActive(false);
         brandRepository.save(brand);
     }
-
 }

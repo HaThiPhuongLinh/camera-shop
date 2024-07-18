@@ -19,11 +19,14 @@ public class CategoryServiceImpl implements ICategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    private boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
+    }
+
     @Override
     public List<Category> getAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin()) {
             return categoryRepository.findAll();
         } else {
             return categoryRepository.findByActiveIsTrue();
@@ -32,24 +35,17 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public Category findById(long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         Category category = categoryRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Category not found"));
 
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin() || category.isActive()) {
             return category;
         } else {
-            if (category.isActive()) {
-                return category;
-            } else {
-                throw new NotFoundException("Category not found");
-            }
+            throw new NotFoundException("Category not found");
         }
     }
 
     @Override
     public void add(CategoryRequest request) {
-
         Category category = Category.builder()
                 .categoryName(request.getCategoryName())
                 .image(request.getImage())

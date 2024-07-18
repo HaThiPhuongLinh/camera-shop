@@ -11,6 +11,11 @@ const cameraApi = {
     return axiosClient.get(url);
   },
 
+  getCameraDTOById: (id) => {
+    const url = `/camera/dto/${id}`;
+    return axiosClient.get(url);
+  },
+
   saveCamera: (cameraData) => {
     const url = '/camera';
     return axiosClient.post(url, cameraData);
@@ -38,11 +43,6 @@ const cameraApi = {
 
   getCamerasByCategoryId: (categoryId) => {
     const url = `/camera/category/${categoryId}`;
-    return axiosClient.get(url);
-  },
-
-  getActiveCameras: () => {
-    const url = '/camera/active';
     return axiosClient.get(url);
   },
 

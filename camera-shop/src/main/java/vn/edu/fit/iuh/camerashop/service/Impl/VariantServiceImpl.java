@@ -23,11 +23,14 @@ public class VariantServiceImpl implements IVariantService {
     @Autowired
     private CameraServiceImpl cameraService;
 
+    private boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
+    }
+
     @Override
     public List<Variant> getAllVariants() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin()) {
             return variantRepository.findAll();
         } else {
             return variantRepository.findByActiveIsTrue();
@@ -36,18 +39,12 @@ public class VariantServiceImpl implements IVariantService {
 
     @Override
     public Variant getVariantById(Integer id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         Variant variant = variantRepository.findById(id).orElseThrow(() -> new NotFoundException("Variant not found"));
 
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()))) {
+        if (isAdmin() || variant.isActive()) {
             return variant;
         } else {
-            if (variant.isActive()) {
-                return variant;
-            } else {
-                throw new NotFoundException("Variant not found");
-            }
+            throw new NotFoundException("Variant not found");
         }
     }
 

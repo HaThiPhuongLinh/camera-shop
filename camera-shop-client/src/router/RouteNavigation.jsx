@@ -6,22 +6,30 @@ import ShopPage from "../pages/ShopPage";
 import BlogPage from "../pages/BlogPage";
 import BlogPost from "../pages/BlogPage/BlogPost";
 import AboutPage from "../pages/AboutPage";
+import ProductPage from "../pages/ProductPage";
+import Wrapper from "../utils/Wrapper";
+import LoginPage from "../pages/LoginPage";
+import SignupPage from "../pages/SignupPage";
 
 const RouteNavigation = () => {
   return (
     <div>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<DefaultLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="camera" element={<ShopPage />} />
-            <Route path="blog" element={<BlogPage />} />
-            <Route path="blogc" element={<BlogPost />} />
-            <Route path="about" element={<AboutPage />} />
-          </Route>
-          <Route path="/admin" element={<AdminLayout />}>
-          </Route>
-        </Routes>
+        <Wrapper>
+          <Routes>
+          <Route path="signin" element={<LoginPage />} />
+          <Route path="signup" element={<SignupPage />} />
+            <Route path="/" element={<DefaultLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="camera" element={<ShopPage />} />
+              <Route path="camera/:id" element={<ProductPage />} />
+              <Route path="blog" element={<BlogPage />} />
+              <Route path="blogc" element={<BlogPost />} />
+              <Route path="about" element={<AboutPage />} />
+            </Route>
+            <Route path="/admin" element={<AdminLayout />}></Route>
+          </Routes>
+        </Wrapper>
       </BrowserRouter>
     </div>
   );

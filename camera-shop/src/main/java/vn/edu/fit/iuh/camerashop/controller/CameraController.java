@@ -3,6 +3,7 @@ package vn.edu.fit.iuh.camerashop.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.fit.iuh.camerashop.dto.dto.CameraDTO;
 import vn.edu.fit.iuh.camerashop.dto.request.CameraRequest;
 import vn.edu.fit.iuh.camerashop.dto.response.SuccessResponse;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
@@ -17,13 +18,18 @@ public class CameraController {
     private ICameraService cameraService;
 
     @GetMapping
-    public ResponseEntity<List<Camera>> getAllCameras() {
+    public ResponseEntity<List<CameraDTO>> getAllCameras() {
         return ResponseEntity.ok(cameraService.getAllCameras());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Camera> getCameraById(@PathVariable long id) {
         return ResponseEntity.ok(cameraService.getCameraById(id));
+    }
+
+    @GetMapping("/dto/{id}")
+    public ResponseEntity<CameraDTO> getCameraDTOById(@PathVariable long id) {
+        return ResponseEntity.ok(cameraService.getCameraDTOById(id));
     }
 
     @PostMapping
@@ -50,18 +56,13 @@ public class CameraController {
     }
 
     @GetMapping("/brand/{brandId}")
-    public ResponseEntity<List<Camera>> getCamerasByBrandId(@PathVariable Integer brandId) {
+    public ResponseEntity<List<CameraDTO>> getCamerasByBrandId(@PathVariable Integer brandId) {
         return ResponseEntity.ok(cameraService.getCamerasByBrandId(brandId));
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Camera>> getCamerasByCategoryId(@PathVariable Integer categoryId) {
+    public ResponseEntity<List<CameraDTO>> getCamerasByCategoryId(@PathVariable Integer categoryId) {
         return ResponseEntity.ok(cameraService.getCamerasByCategoryId(categoryId));
-    }
-
-    @GetMapping("/active")
-    public ResponseEntity<List<Camera>> getActiveCameras() {
-        return ResponseEntity.ok(cameraService.getActiveCameras());
     }
 
     @GetMapping("/hot/{hot}")

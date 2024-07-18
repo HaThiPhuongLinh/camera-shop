@@ -1,6 +1,7 @@
 import BrandSection from "../../components/Brand";
 import ProductSection from "../../components/Product";
 import CategorySection from "../../components/Category/index";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
@@ -56,7 +57,7 @@ const HomePage = () => {
           <section className="flex flex-col py-px mt-7 w-full max-w-[1204px] max-md:max-w-full">
             <ProductSection />
             <button className="self-center w-1/6 max-md:w-1/3 flex justify-center p-2 mt-10 text-base font-semibold tracking-wider text-white border-2 border-white border-solid shadow-sm max-md:px-5 max-md:mt-10 hover:bg-gray-700">
-              SHOP ALL
+              <Link to="/camera">SHOP ALL </Link>
             </button>
           </section>
           <section className="flex flex-col justify-center self-center mt-16 mb-2 w-full max-w-[1204px] max-md:mt-10 max-md:max-w-full">

@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.service;
 
+import vn.edu.fit.iuh.camerashop.dto.dto.CameraDTO;
 import vn.edu.fit.iuh.camerashop.dto.request.CameraRequest;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
 
@@ -7,9 +8,11 @@ import java.util.List;
 
 public interface ICameraService {
 
-    List<Camera> getAllCameras();
+    List<CameraDTO> getAllCameras();
 
     Camera getCameraById(long id);
+
+    CameraDTO getCameraDTOById(long id);
 
     void saveCamera(CameraRequest request);
 
@@ -19,11 +22,9 @@ public interface ICameraService {
 
     List<Camera> searchCamerasByName(String name);
 
-    List<Camera> getCamerasByBrandId(Integer brandId);
+    List<CameraDTO> getCamerasByBrandId(Integer brandId);
 
-    List<Camera> getCamerasByCategoryId(Integer categoryId);
-
-    List<Camera> getActiveCameras();
+    List<CameraDTO> getCamerasByCategoryId(Integer categoryId);
 
     List<Camera> getHotCameras(boolean hot);
 }
