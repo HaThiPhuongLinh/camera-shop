@@ -106,4 +106,11 @@ public class VariantServiceImpl implements IVariantService {
                 .filter(variant -> variant.getCamera().isHot() && variant.isActive())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void updateVariantQuantity(long variantId, int quantityChange) {
+        Variant variant = getVariantById((int) variantId);
+        variant.setQuantity(variant.getQuantity() + quantityChange);
+        variantRepository.save(variant);
+    }
 }

@@ -9,4 +9,6 @@ public interface IOrderService {
     Order createOrder(OrderRequest orderRequest);
 
     void updateOrderStatus(String orderId, Status newStatus);
+
+    void cancelOrder(String orderId);
 }

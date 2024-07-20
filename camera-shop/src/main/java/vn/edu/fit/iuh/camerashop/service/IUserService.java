@@ -14,8 +14,6 @@ public interface IUserService {
 
     User getUserById(long id);
 
-    User getUserByEmail(String email);
-
     void updateUser(long id, UserRequest userRequest);
 
     void deleteUser(long id);

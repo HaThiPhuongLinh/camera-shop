@@ -92,7 +92,7 @@ public class SecurityConfig {
 
         httpSecurity.httpBasic(httpBasic ->
                 httpBasic.authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
                     response.getWriter().write("{\n\tmessgae : \"" + authException.getMessage() + "\"\n}");
                 }));

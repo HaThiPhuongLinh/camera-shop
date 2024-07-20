@@ -27,7 +27,10 @@ public class CartItem {
     private int quantity;
 
     public double getPrice() {
-        return variant.getPrice() * quantity;
+        double originalPrice = variant.getPrice();
+        double discount = variant.getDiscount();
+        double priceAfterDiscount = originalPrice * (1 - discount / 100.0);
+        return priceAfterDiscount * quantity;
     }
 }
 

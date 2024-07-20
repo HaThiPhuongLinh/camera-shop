@@ -6,25 +6,33 @@ import {
   isValidPhone,
   isValidAddress,
 } from "../../utils/Validate";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
+import loginApi from "./../../api/loginApi";
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
   const slideRefs = [useRef(null), useRef(null), useRef(null)];
   const [slideWidth, setSlideWidth] = useState(0);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
 
   const [fullNameError, setFullNameError] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
   const [addressError, setAddressError] = useState(false);
+  const [dayError, setDayError] = useState(false);
+  const [monthError, setMonthError] = useState(false);
+  const [yearError, setYearError] = useState(false);
 
   useEffect(() => {
     if (slideRefs[0].current) {
@@ -40,7 +48,7 @@ const SignupPage = () => {
   const handleFullNameChange = (e) => {
     const value = e.target.value;
     setFullName(value);
-    setFullNameError(!isValidFullName(value)); 
+    setFullNameError(!isValidFullName(value));
   };
 
   const handleEmailChange = (e) => {
@@ -67,7 +75,22 @@ const SignupPage = () => {
     setAddressError(!isValidAddress(value));
   };
 
-  const handleSubmit = (e) => {
+  const handleDayChange = (e) => {
+    setDay(e.target.value);
+    setDayError(e.target.value === "");
+  };
+
+  const handleMonthChange = (e) => {
+    setMonth(e.target.value);
+    setMonthError(e.target.value === "");
+  };
+
+  const handleYearChange = (e) => {
+    setYear(e.target.value);
+    setYearError(e.target.value === "");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setFullNameError(!isValidFullName(fullName));
@@ -75,6 +98,9 @@ const SignupPage = () => {
     setPasswordError(!isValidPassword(password));
     setPhoneError(!isValidPhone(phone));
     setAddressError(!isValidAddress(address));
+    setDayError(day === "");
+    setMonthError(month === "");
+    setYearError(year === "");
 
     if (
       !fullNameError &&
@@ -83,7 +109,29 @@ const SignupPage = () => {
       !phoneError &&
       !addressError
     ) {
-      navigate("/signin");
+      const dateOfBirth = `${year}-${month.padStart(2, "0")}-${day.padStart(
+        2,
+        "0"
+      )}`;
+      try {
+        await loginApi.register({
+          email,
+          password,
+          fullName,
+          phone,
+          address,
+          dateOfBirth,
+        });
+
+        setShowSuccessPopup(true);
+        setTimeout(() => {
+          setShowSuccessPopup(false);
+          navigate("/signin");
+          window.location.reload();
+        }, 3000);
+      } catch (error) {
+        console.error("Error register:", error);
+      }
     }
   };
 
@@ -206,6 +254,7 @@ const SignupPage = () => {
                         placeholder="Katty Perry "
                         value={fullName}
                         onChange={handleFullNameChange}
+                        required
                       />
                       <p className="text-gray-500 text-xs mt-1">
                         Full name must be at least 2 words, with the first
@@ -227,6 +276,7 @@ const SignupPage = () => {
                         placeholder="eyesee@gmail.com"
                         value={email}
                         onChange={handleEmailChange}
+                        required
                       />
                       <p className="text-gray-500 text-xs mt-1">
                         e.g., example@email.com
@@ -250,6 +300,7 @@ const SignupPage = () => {
                           placeholder="Enter your password"
                           value={password}
                           onChange={handlePasswordChange}
+                          required
                         />
                         <p className="text-gray-500 text-xs mt-1">
                           Password must be at least 8 characters long, start
@@ -273,10 +324,11 @@ const SignupPage = () => {
                             className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
                               phoneError ? "border-red-500" : ""
                             }`}
-                            type="text" 
+                            type="text"
                             placeholder="0123456789"
                             value={phone}
                             onChange={handlePhoneChange}
+                            required
                           />
                           <p className="text-gray-500 text-xs mt-1">
                             Phone number must start with 0 and have 10 or 11
@@ -302,6 +354,7 @@ const SignupPage = () => {
                             placeholder="123 San Francisco, USA"
                             value={address}
                             onChange={handleAddressChange}
+                            required
                           />
                           <p className="text-gray-500 text-xs mt-1">
                             Address must contain numbers, letters, and spaces.
@@ -321,7 +374,13 @@ const SignupPage = () => {
                       <div className="relative">
                         <div className="flex">
                           <div className="flex-1 mr-2">
-                            <select className="w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg">
+                            <select
+                              className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
+                                dayError ? "border-red-500" : ""
+                              }`}
+                              value={day}
+                              onChange={handleDayChange}
+                            >
                               <option value="">Day</option>
                               {Array.from({ length: 31 }, (_, i) => i + 1).map(
                                 (day) => (
@@ -333,7 +392,13 @@ const SignupPage = () => {
                             </select>
                           </div>
                           <div className="flex-1 mr-2">
-                            <select className="w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg">
+                            <select
+                              className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
+                                monthError ? "border-red-500" : ""
+                              }`}
+                              value={month}
+                              onChange={handleMonthChange}
+                            >
                               <option value="">Month</option>
                               {Array.from({ length: 12 }, (_, i) => i + 1).map(
                                 (month) => (
@@ -345,11 +410,17 @@ const SignupPage = () => {
                             </select>
                           </div>
                           <div className="flex-1">
-                            <select className="w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg">
+                            <select
+                              className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
+                                yearError ? "border-red-500" : ""
+                              }`}
+                              value={year}
+                              onChange={handleYearChange}
+                            >
                               <option value="">Year</option>
                               {Array.from(
-                                { length: 120 },
-                                (_, i) => 1900 + i
+                                { length: 62 },
+                                (_, i) => 1945 + i
                               ).map((year) => (
                                 <option key={year} value={year}>
                                   {year}
@@ -358,7 +429,6 @@ const SignupPage = () => {
                             </select>
                           </div>
                         </div>
-                        <button className="absolute top-1/2 right-0 mr-3 transform -translate-y-1/2 inline-block hover:scale-110 transition duration-100"></button>
                       </div>
                     </div>
                     <button
@@ -371,11 +441,9 @@ const SignupPage = () => {
                     <span className="text-xs font-semibold text-gray-900">
                       <span>Have an account?</span>
                       <Link to="/signin">
-                      <a
-                        className="ml-1 inline-block text-orange-900 hover:text-orange-700"
-                      >
-                        Sign in
-                      </a>
+                        <div className="ml-1 inline-block text-orange-900 hover:text-orange-700">
+                          Sign in
+                        </div>
                       </Link>
                     </span>
                   </form>
@@ -385,6 +453,37 @@ const SignupPage = () => {
           </div>
         </div>
       </section>
+      {showSuccessPopup && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-5 rounded-md shadow-lg">
+            <svg
+              viewBox="0 0 32 32"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-12 h-12 block mx-auto mb-6"
+            >
+              <g data-name="Layer 28">
+                <path
+                  d="M16 31a15 15 0 1 1 15-15 15 15 0 0 1-15 15Zm0-28a13 13 0 1 0 13 13A13 13 0 0 0 16 3Z"
+                  fill="#4ea359"
+                  className="fill-101820 "
+                ></path>
+                <path
+                  d="M13.67 22a1 1 0 0 1-.73-.32l-4.67-5a1 1 0 0 1 1.46-1.36l3.94 4.21 8.6-9.21a1 1 0 1 1 1.46 1.36l-9.33 10a1 1 0 0 1-.73.32Z"
+                  fill="#4ea359"
+                  className="fill-101820 "
+                ></path>
+              </g>
+            </svg>
+            <h2 className="text-4xl font-heading mb-3">
+              Thank you for joining us!
+            </h2>
+            <p className="max-w-md mx-auto leading-8 mb-10">
+              We are excited to have you on board as we embark on this exciting
+              adventure together.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

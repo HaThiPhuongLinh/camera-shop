@@ -24,4 +24,8 @@ public class Order {
     private int quantity;
     private double total;
     private LocalDateTime createAt;
+
+    private String shipAddress;
+    private String customerName;
+    private String customerPhone;
 }

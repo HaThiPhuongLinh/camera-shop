@@ -54,14 +54,19 @@ public class CartServiceImpl implements ICartService {
 
         Cart cart = getCartById(cartId);
 
-        cart.setTotalItems(cartItems.size());
+        int totalItems = cartItems.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
 
-        cart.setTotalPrice(cartItems.stream()
+        double totalPrice = cartItems.stream()
                 .mapToDouble(CartItem::getPrice)
-                .sum());
+                .sum();
 
+        cart.setTotalPrice(totalPrice);
+        cart.setTotalItems(totalItems);
         cartRepository.save(cart);
     }
+
 
     @Override
     public Cart getCartById(long cartId) {

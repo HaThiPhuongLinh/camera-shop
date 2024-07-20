@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 const HomePage = () => {
   return (
     <div className="flex flex-col bg-white">
-      <header className="flex flex-col pt-5 pb-20 border border-black border-solid shadow-sm bg-zinc-800 rounded-[100px_100px_0px_0px] max-md:max-w-full">
+      <header className="flex flex-col pt-5 pb-20 border border-black border-solid shadow-sm bg-[#2E2F31] rounded-[100px_100px_0px_0px] max-md:max-w-full">
         <nav className="flex flex-col items-center px-5 max-md:max-w-full">
           <div className="flex flex-col self-stretch px-10 pt-14 pb-8 bg-[#dfdfdf] rounded-[90px] max-md:px-5 max-md:max-w-full">
             <img

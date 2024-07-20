@@ -36,6 +36,11 @@ const cameraApi = {
     return axiosClient.get(url);
   },
 
+  getCameraByName: (name) => {
+    const url = `/camera/name/${name}`;
+    return axiosClient.get(url);
+  },
+
   getCamerasByBrandId: (brandId) => {
     const url = `/camera/brand/${brandId}`;
     return axiosClient.get(url);
@@ -46,8 +51,8 @@ const cameraApi = {
     return axiosClient.get(url);
   },
 
-  getHotCameras: (hot) => {
-    const url = `/camera/hot/${hot}`;
+  getHotCameras: () => {
+    const url = `/camera/hot`;
     return axiosClient.get(url);
   },
 };

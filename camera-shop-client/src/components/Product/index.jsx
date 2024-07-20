@@ -1,22 +1,34 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
-import variantApi from "./../../api/variantApi";
+import cameraApi from "./../../api/cameraApi";
 
 const ProductSection = () => {
-  const [variants, setVariants] = useState([]);
+  const [cameras, setCameras] = useState([]);
 
   useEffect(() => {
-    const fetchVariants = async () => {
+    const fetchCameras = async () => {
       try {
-        const fetchedVariants = await variantApi.getVariantsByHotCameras();
-        setVariants(fetchedVariants.slice(0, 4));
+        const fetchCameras = await cameraApi.getHotCameras();
+        console.log(fetchCameras);
+        setCameras(fetchCameras.slice(0, 4));
       } catch (error) {
-        console.error("Error fetching variants:", error);
+        console.error("Error fetching cameras:", error);
       }
     };
 
-    fetchVariants();
+    fetchCameras();
   }, []);
+
+  const getPrimaryImage = (variants) => {
+    return variants.length > 0 ? variants[0].images[0] : "";
+  };
+
+  const getLowestPrice = (variants) => {
+    return variants.reduce(
+      (lowest, variant) => (variant.price < lowest ? variant.price : lowest),
+      variants[0].price
+    );
+  };
 
   return (
     <div>
@@ -25,7 +37,7 @@ const ProductSection = () => {
       </h3>
       <div className="mt-12 max-md:mt-10 max-md:max-w-full">
         <section className="flex gap-5 max-md:flex-col max-md:gap-0 rounded-md">
-          {variants.map((variant, index) => (
+          {cameras.map((camera, index) => (
             <div
               key={index}
               className={`flex flex-col w-[33%] max-md:ml-0 max-md:w-full ${
@@ -33,10 +45,17 @@ const ProductSection = () => {
               }`}
             >
               <ProductCard
-                imageSrc={variant.images[0]}
-                isHot={variant.camera.hot}
-                productName={variant.camera.name}
-                price={variant.price}
+                imageSrc={getPrimaryImage(camera.variants)}
+                isHot={camera.hot}
+                productName={camera.name}
+                price={(
+                  getLowestPrice(camera.variants) *
+                  (1 -
+                    Math.max(
+                      ...camera.variants.map((variant) => variant.discount)
+                    ) /
+                      100)
+                ).toFixed(2)}
               />
             </div>
           ))}

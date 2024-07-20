@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.dto.dto;
 
+import jakarta.persistence.Column;
 import lombok.*;
 
 @Data
@@ -10,6 +11,10 @@ public class CartItemDTO {
     private String source;
     private String color;
     private String style;
+    @Column(name = "kit")
+    private String set;
+
+    private double discount;
     private int quantity;
     private double price;
     private String images;

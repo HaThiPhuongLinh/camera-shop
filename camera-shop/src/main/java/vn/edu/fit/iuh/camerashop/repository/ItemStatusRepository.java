@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ItemStatusRepository extends JpaRepository<ItemStatus, Integer> {
 
-    List<ItemStatus> findAllByOrderId(String orderId);
+    List<ItemStatus> findByOrderId(String orderId);
 
     boolean existsByOrderIdAndStatus(String orderId, Status status);
 

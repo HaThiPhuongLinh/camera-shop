@@ -69,6 +69,16 @@ public class CameraServiceImpl implements ICameraService {
     }
 
     @Override
+    public CameraDTO getCameraDTOByName(String name) {
+        Camera camera = cameraRepository.findByName(name);
+        if (isAdmin() || camera.isActive()) {
+            return convertToDTO(camera);
+        } else {
+            throw new NotFoundException("Camera not found");
+        }
+    }
+
+    @Override
     public void saveCamera(CameraRequest request) {
         Brand brand = brandServiceImpl.findById(request.getBrandId());
 
@@ -179,6 +189,7 @@ public class CameraServiceImpl implements ICameraService {
                         .color(variant.getColor())
                         .style(variant.getStyle())
                         .set(variant.getSet())
+                        .quantity(variant.getQuantity())
                         .discount(variant.getDiscount())
                         .price(variant.getPrice())
                         .active(variant.isActive())
@@ -217,11 +228,14 @@ public class CameraServiceImpl implements ICameraService {
     }
 
     @Override
-    public List<Camera> getHotCameras(boolean hot) {
+    public List<CameraDTO> getHotCameras() {
+        List<Camera> cameras;
         if (isAdmin()) {
-            return cameraRepository.findByHot(hot);
+            cameras =  cameraRepository.findByHotIsTrue();
         } else {
-            return cameraRepository.findByHotAndActiveIsTrue(hot);
+            cameras = cameraRepository.findByHotIsTrueAndActiveIsTrue();
         }
+
+        return getCameraDTOS(cameras);
     }
 }

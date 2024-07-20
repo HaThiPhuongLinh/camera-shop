@@ -13,4 +13,7 @@ public class OrderRequest {
     private int quantity;
     private double total;
     private List<OrderDetailRequest> orderDetails;
+    private String shipAddress;
+    private String customerName;
+    private String customerPhone;
 }

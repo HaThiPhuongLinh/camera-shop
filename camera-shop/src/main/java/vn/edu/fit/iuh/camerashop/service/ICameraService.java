@@ -14,6 +14,8 @@ public interface ICameraService {
 
     CameraDTO getCameraDTOById(long id);
 
+    CameraDTO getCameraDTOByName(String name);
+
     void saveCamera(CameraRequest request);
 
     void updateCamera(long id, CameraRequest request);
@@ -26,5 +28,5 @@ public interface ICameraService {
 
     List<CameraDTO> getCamerasByCategoryId(Integer categoryId);
 
-    List<Camera> getHotCameras(boolean hot);
+    List<CameraDTO> getHotCameras();
 }

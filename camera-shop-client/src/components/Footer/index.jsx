@@ -22,7 +22,7 @@ const Footer = () => {
       setShowSuccessPopup(true);
       setTimeout(() => {
         setShowSuccessPopup(false);
-      }, 4000);
+      }, 3000);
       emailInput.value = "";
     } catch (error) {
       console.error("Error sending email:", error);
@@ -39,8 +39,8 @@ const Footer = () => {
   };
 
   return (
-    <footer className="flex flex-col justify-center bg-zinc-100">
-      <div className="flex flex-col items-center pt-5 pr-4 pb-3 pl-20 w-full bg-zinc-100 max-md:pl-5 max-md:max-w-full">
+    <footer className="flex flex-col justify-center bg-[#f4f4f5]">
+      <div className="flex flex-col items-center pt-5 pr-4 pb-3 pl-20 w-full bg-[#f4f4f5] max-md:pl-5 max-md:max-w-full">
         <div className="self-start max-md:max-w-full w-full">
           <div className="flex max-md:flex-col max-md:gap-0">
             <FooterSection

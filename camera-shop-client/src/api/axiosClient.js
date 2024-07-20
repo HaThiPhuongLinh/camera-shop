@@ -23,7 +23,6 @@ axiosClient.interceptors.response.use(
         if (response && response.data) {
             return response.data;
         }
-
         return response;
     },
     async (error) => {
@@ -32,10 +31,9 @@ axiosClient.interceptors.response.use(
             return Promise.reject(error);
         }
         axios.interceptors.response.eject(axiosClient.interceptors);
-        return axios
-            .post('/auth/refreshToken', {
-                refreshToken,
-            })
+        return axios.post(`${process.env.REACT_APP_API_URL}/auth/refreshToken`, {
+            refreshToken: refreshToken,
+        })
             .then((token) => {
                 localStorage.setItem('token', token);
                 error.response.config.headers['Authorization'] =

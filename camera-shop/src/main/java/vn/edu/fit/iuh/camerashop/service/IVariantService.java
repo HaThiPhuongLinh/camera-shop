@@ -20,4 +20,6 @@ public interface IVariantService {
     List<Variant> getVariantsByCameraId(Integer cameraId);
 
     List<Variant> getVariantsByHotCameras();
+
+    void updateVariantQuantity(long variantId, int quantityChange);
 }

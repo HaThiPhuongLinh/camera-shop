@@ -50,6 +50,12 @@ public class CameraController {
         return ResponseEntity.ok(new SuccessResponse("Deleted camera successfully"));
     }
 
+    @GetMapping("/name/{name}")
+    public ResponseEntity<CameraDTO> getCameraByName(@PathVariable String name) {
+        CameraDTO cameraDTO = cameraService.getCameraDTOByName(name);
+        return ResponseEntity.ok(cameraDTO);
+    }
+
     @GetMapping("/search/{name}")
     public ResponseEntity<List<Camera>> searchCamerasByName(@PathVariable String name) {
         return ResponseEntity.ok(cameraService.searchCamerasByName(name));
@@ -65,8 +71,8 @@ public class CameraController {
         return ResponseEntity.ok(cameraService.getCamerasByCategoryId(categoryId));
     }
 
-    @GetMapping("/hot/{hot}")
-    public ResponseEntity<List<Camera>> getHotCameras(@PathVariable boolean hot) {
-        return ResponseEntity.ok(cameraService.getHotCameras(hot));
+    @GetMapping("/hot")
+    public ResponseEntity<List<CameraDTO>> getHotCameras() {
+        return ResponseEntity.ok(cameraService.getHotCameras());
     }
 }

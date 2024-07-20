@@ -40,8 +40,10 @@ public class CartItemServiceImpl implements ICartItemService {
                     .source(variant.getSource())
                     .color(variant.getColor())
                     .style(variant.getStyle())
+                    .set(variant.getSet())
+                    .discount(variant.getDiscount())
                     .quantity(cartItem.getQuantity())
-                    .price(cartItem.getPrice())
+                    .price(variant.getPrice())
                     .images(variant.getImages().get(0))
                     .build();
         }).toList();
@@ -92,8 +94,10 @@ public class CartItemServiceImpl implements ICartItemService {
         CartItem cartItem = getCartItemByCartIdAndVariantId(cartId, variantId);
 
         if (cartItem != null) {
+            variantService.updateVariantQuantity(variantId, cartItem.getQuantity());
             cartItemRepository.delete(cartItem);
             cartService.calculateTotalPrice(cartId);
         }
     }
+
 }

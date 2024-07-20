@@ -7,6 +7,7 @@ import vn.edu.fit.iuh.camerashop.entity.ItemState;
 import vn.edu.fit.iuh.camerashop.entity.ItemStatus;
 import vn.edu.fit.iuh.camerashop.entity.enums.Status;
 import vn.edu.fit.iuh.camerashop.exception.BadRequestException;
+import vn.edu.fit.iuh.camerashop.exception.NotFoundException;
 import vn.edu.fit.iuh.camerashop.repository.ItemStatusRepository;
 import vn.edu.fit.iuh.camerashop.service.IItemStatusService;
 
@@ -38,10 +39,11 @@ public class ItemStatusImpl implements IItemStatusService {
 
     @Override
     public ItemStatusResponse getByOrderId(String orderId) {
-        List<ItemStatus> itemStatusList = itemStatusRepository.findAllByOrderId(orderId);
+        List<ItemStatus> itemStatusList = itemStatusRepository.findByOrderId(orderId);
 
-        if (itemStatusList.isEmpty())
-            throw new BadRequestException("OrderID not found");
+        if (itemStatusList.isEmpty()) {
+            throw new NotFoundException("OrderID not found");
+        }
 
         List<ItemState> itemStateList = itemStatusList.stream()
                 .map(itemStatus -> ItemState.builder()

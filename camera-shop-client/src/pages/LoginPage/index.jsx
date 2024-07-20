@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import loginApi from "./../../api/loginApi";
-import { Link, useNavigate } from 'react-router-dom';
+import cartApi from "../../api/cartApi";
+import { Link, useNavigate } from "react-router-dom";
+import useAuthStore from "./../../hooks/authStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -11,6 +13,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState(null);
   const [passwordError, setPasswordError] = useState(null);
+
+  const login = useAuthStore((state) => state.login);
 
   useEffect(() => {
     if (slideRefs[0].current) {
@@ -33,12 +37,25 @@ const LoginPage = () => {
     setPasswordError(null);
 
     try {
-      await loginApi.login({
+      const response = await loginApi.login({
         email,
         password,
       });
 
+      const userId = response.id;
+      
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("refreshToken", response.refreshToken);
+
+      const cartResponse = await cartApi.getCartByUserId(userId);
+      const cartId = cartResponse.id;
+      const totalItems = cartResponse.totalItems;
+      const totalPrice = cartResponse.totalPrice;
+
+      login(userId, cartId, totalItems, totalPrice);
+
       navigate("/");
+      window.location.reload();
     } catch (error) {
       if (error.response && error.response.status === 400) {
         if (error.response.data.message === "Email not found") {
@@ -179,6 +196,8 @@ const LoginPage = () => {
                         placeholder="eyesee@gmail.com"
                         value={email}
                         onChange={handleEmailChange}
+                        autoComplete="email"
+                        required
                       />
                       {emailError && (
                         <p className="text-red-500 text-xs mt-1">
@@ -205,11 +224,12 @@ const LoginPage = () => {
                         <input
                           className="w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg"
                           type="password"
+                          autoComplete="current-password"
                           placeholder="Enter your password"
                           value={password}
                           onChange={handlePasswordChange}
+                          required
                         />
-                        <button className="absolute top-1/2 right-0 mr-3 transform -translate-y-1/2 inline-block hover:scale-110 transition duration-100"></button>
                       </div>
                       {passwordError && (
                         <p className="text-red-500 text-xs mt-1 text-left">
@@ -227,11 +247,9 @@ const LoginPage = () => {
                     <span className="text-xs font-semibold text-gray-900">
                       <span>Don’t have an account?</span>
                       <Link to="/signup">
-                      <a
-                        className="ml-1 inline-block text-orange-900 hover:text-orange-700"
-                      >
-                        Sign up
-                      </a>
+                        <div className="ml-1 inline-block text-orange-900 hover:text-orange-700">
+                          Sign up
+                        </div>
                       </Link>
                     </span>
                   </form>

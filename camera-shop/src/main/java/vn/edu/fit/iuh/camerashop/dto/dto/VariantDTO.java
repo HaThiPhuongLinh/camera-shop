@@ -17,6 +17,7 @@ public class VariantDTO {
     @Column(name = "kit")
     private String set;
 
+    private int quantity;
     private double discount;
     private double price;
     private boolean active;

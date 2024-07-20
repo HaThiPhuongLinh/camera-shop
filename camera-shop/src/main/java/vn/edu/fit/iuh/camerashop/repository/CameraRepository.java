@@ -1,6 +1,7 @@
 package vn.edu.fit.iuh.camerashop.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
 
 import java.util.List;
@@ -8,6 +9,9 @@ import java.util.List;
 public interface CameraRepository extends JpaRepository<Camera, Integer> {
 
     List<Camera> findByNameContaining(String name);
+
+    @Query("SELECT c FROM Camera c WHERE LOWER(REPLACE(c.name, ' ', '-')) = LOWER(REPLACE(:name, ' ', '-'))")
+    Camera findByName(String name);
 
     List<Camera> findByNameContainingAndActiveIsTrue(String name);
 
@@ -21,8 +25,8 @@ public interface CameraRepository extends JpaRepository<Camera, Integer> {
 
     List<Camera> findByActiveIsTrue();
 
-    List<Camera> findByHot(boolean hot);
+    List<Camera> findByHotIsTrue();
 
-    List<Camera> findByHotAndActiveIsTrue(boolean hot);
+    List<Camera> findByHotIsTrueAndActiveIsTrue();
 
 }

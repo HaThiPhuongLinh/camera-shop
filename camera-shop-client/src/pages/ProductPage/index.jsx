@@ -1,28 +1,95 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import cameraApi from "../../api/cameraApi";
+import cartApi from "../../api/cartApi";
+import useAuthStore from "./../../hooks/authStore";
 
 const ProductPage = () => {
+  const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState("Description");
   const [camera, setCamera] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const { id } = useParams();
+  const [showMaxQuantityAlert, setShowMaxQuantityAlert] = useState(false);
+  const { name } = useParams();
+  const { cartId, userId } = useAuthStore();
 
   useEffect(() => {
     const fetchCameraData = async () => {
       try {
-        const response = await cameraApi.getCameraDTOById(id);
+        const response = await cameraApi.getCameraByName(
+          name.replace(/-/g, " ")
+        );
         setCamera(response);
-        setSelectedVariant(response.variants[0]);
+        if (!selectedVariant) {
+          setSelectedVariant(response.variants[0]);
+        }
+        setQuantity(response.variants[0].quantity > 0 ? 1 : 0);
       } catch (error) {
-        console.error("Error fetching camera data:", error);
+        console.error("Error fetching cameras:", error);
       }
     };
 
     fetchCameraData();
-  }, [id]);
+  }, [name]);
+
+  const checkCartQuantity = async () => {
+    try {
+      const cartResponse = await cartApi.getCartItemsByCartId(cartId);
+      const cartItems = cartResponse;
+
+      const existingCartItem = cartItems.find(
+        (item) => item.variantId === selectedVariant.id
+      );
+
+      if (
+        existingCartItem &&
+        existingCartItem.quantity >= selectedVariant.quantity
+      ) {
+        console.log(
+          "Cannot add more, item already in cart with maximum quantity reached."
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error checking cart quantity:", error);
+      return false;
+    }
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      const canAddToCart = await checkCartQuantity();
+
+      if (!canAddToCart) {
+        setShowMaxQuantityAlert(true);
+        return;
+      }
+
+      await cartApi.addCartItem({
+        cartId: cartId,
+        variantId: selectedVariant.id,
+        quantity: quantity,
+      });
+
+      const cartResponse = await cartApi.getCartByUserId(userId);
+      const totalItems = cartResponse.totalItems;
+      const totalPrice = cartResponse.totalPrice;
+
+      useAuthStore.getState().updateTotalItems(totalItems);
+      useAuthStore.getState().updateTotalPrice(totalPrice);
+    } catch (error) {
+      console.error("Error adding item to cart", error);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    await handleAddToCart();
+    navigate("/cart");
+  };
 
   if (!camera) {
     return (
@@ -83,12 +150,29 @@ const ProductPage = () => {
   const handleVariantChange = (variant) => {
     setSelectedVariant(variant);
     setActiveSlide(0);
+    setQuantity(variant.quantity > 0 ? 1 : 0);
   };
 
+  const handleQuantityChange = (newQuantity) => {
+    const maxQuantity = selectedVariant.quantity;
+    if (newQuantity > maxQuantity) {
+      setQuantity(maxQuantity);
+    } else if (newQuantity < 1 && selectedVariant.quantity > 0) {
+      setQuantity(1);
+    } else if (newQuantity <= 0 && selectedVariant.quantity === 0) {
+      setQuantity(0);
+    } else {
+      setQuantity(newQuantity);
+    }
+  };
+
+  const handleCloseAlert = () => {
+    setShowMaxQuantityAlert(false);
+  };
 
   return (
     <div className="flex flex-col bg-white">
-      <header className="flex flex-col pt-5 pb-5 border border-black border-solid shadow-sm bg-zinc-800 rounded-[100px_100px_0px_0px] max-md:max-w-full">
+      <header className="flex flex-col pt-5 pb-5 border border-black border-solid shadow-sm bg-[#2E2F31] rounded-[100px_100px_0px_0px] max-md:max-w-full">
         <nav className="flex flex-col items-center px-5 max-md:max-w-full">
           <div className="flex flex-col self-stretch pt-14 bg-white rounded-[90px_90px_0px_0px] max-md:px-5 max-md:max-w-full">
             <section className="mt-10">
@@ -258,63 +342,63 @@ const ProductPage = () => {
                           <div className="mb-3">
                             {/* Style */}
                             {selectedVariant.style && (
-                            <div>
-                              <span className="block mb-2 font-bold font-heading text-gray-400 uppercase">
-                                Style
-                              </span>
-                              <div className="flex space-x-3">
-                                {uniqueStyles.map((style) => (
-                                  <button
-                                    key={style}
-                                    className={`p-2.5 pr-4 py-2 font-semibold font-heading text-black border-2 border-solid ${
-                                      selectedVariant.style === style
-                                        ? "border-[#007bff]"
-                                        : "border-gray-200"
-                                    } focus:ring-blue-300 focus:border-blue-300 rounded-md`}
-                                    onClick={() =>
-                                      handleVariantChange(
-                                        camera.variants.find(
-                                          (variant) => variant.style === style
+                              <div>
+                                <span className="block mb-2 font-bold font-heading text-gray-400 uppercase">
+                                  Style
+                                </span>
+                                <div className="flex space-x-3">
+                                  {uniqueStyles.map((style) => (
+                                    <button
+                                      key={style}
+                                      className={`p-2.5 pr-4 py-2 font-semibold font-heading text-black border-2 border-solid ${
+                                        selectedVariant.style === style
+                                          ? "border-[#007bff]"
+                                          : "border-gray-200"
+                                      } focus:ring-blue-300 focus:border-blue-300 rounded-md`}
+                                      onClick={() =>
+                                        handleVariantChange(
+                                          camera.variants.find(
+                                            (variant) => variant.style === style
+                                          )
                                         )
-                                      )
-                                    }
-                                  >
-                                    {style}
-                                  </button>
-                                ))}
+                                      }
+                                    >
+                                      {style}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
                             )}
                           </div>
                           <div className="mb-3">
                             {/* Set */}
                             {selectedVariant.set && (
-                            <div>
-                              <span className="block mb-2 font-bold font-heading text-gray-400 uppercase">
-                                Set
-                              </span>
-                              <div className="flex space-x-3">
-                                {uniqueSets.map((set) => (
-                                  <button
-                                    key={set}
-                                    className={`p-2.5 pr-4 py-2 font-semibold font-heading text-black border-2 border-solid ${
-                                      selectedVariant.set === set
-                                        ? "border-[#007bff]"
-                                        : "border-gray-200"
-                                    } focus:ring-blue-300 focus:border-blue-300 rounded-md`}
-                                    onClick={() =>
-                                      handleVariantChange(
-                                        camera.variants.find(
-                                          (variant) => variant.set === set
+                              <div>
+                                <span className="block mb-2 font-bold font-heading text-gray-400 uppercase">
+                                  Set
+                                </span>
+                                <div className="flex space-x-3">
+                                  {uniqueSets.map((set) => (
+                                    <button
+                                      key={set}
+                                      className={`p-2.5 pr-4 py-2 font-semibold font-heading text-black border-2 border-solid ${
+                                        selectedVariant.set === set
+                                          ? "border-[#007bff]"
+                                          : "border-gray-200"
+                                      } focus:ring-blue-300 focus:border-blue-300 rounded-md`}
+                                      onClick={() =>
+                                        handleVariantChange(
+                                          camera.variants.find(
+                                            (variant) => variant.set === set
+                                          )
                                         )
-                                      )
-                                    }
-                                  >
-                                    {set}
-                                  </button>
-                                ))}
+                                      }
+                                    >
+                                      {set}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
                             )}
                           </div>
                           <div className="flex flex-wrap space-x-5">
@@ -325,11 +409,13 @@ const ProductPage = () => {
                               <div className="inline-flex items-center px-4 font-semibold font-heading text-gray-500 border border-gray-200 focus:ring-blue-300 focus:border-blue-300 rounded-md">
                                 <button
                                   onClick={() =>
-                                    setQuantity(
-                                      quantity > 1 ? quantity - 1 : quantity
-                                    )
+                                    handleQuantityChange(quantity - 1)
                                   }
                                   className="py-2 hover:text-gray-700"
+                                  disabled={
+                                    quantity <= 1 ||
+                                    selectedVariant.quantity === 0
+                                  }
                                 >
                                   <svg
                                     width="12"
@@ -353,14 +439,16 @@ const ProductPage = () => {
                                   className="w-12 m-0 px-2 py-2 text-center md:text-right border-0 focus:ring-transparent focus:outline-none rounded-md"
                                   type="number"
                                   value={quantity}
-                                  onChange={(e) =>
-                                    setQuantity(Number(e.target.value))
-                                  }
-                                  placeholder="1"
+                                  readOnly
                                 />
                                 <button
-                                  onClick={() => setQuantity(quantity + 1)}
+                                  onClick={() =>
+                                    handleQuantityChange(quantity + 1)
+                                  }
                                   className="py-2 hover:text-gray-700"
+                                  disabled={
+                                    quantity >= selectedVariant.quantity
+                                  }
                                 >
                                   <svg
                                     width="12"
@@ -392,15 +480,26 @@ const ProductPage = () => {
                             <div className="flex items-end">
                               <div className="px-4 mb-4 xl:mb-0">
                                 <button
-                                  className="block bg-orange-300 hover:bg-orange-400 text-center text-white font-bold font-heading py-3 px-5 rounded-md uppercase transition duration-200"
+                                  onClick={handleBuyNow}
+                                  className={`block ${
+                                    quantity === 0
+                                      ? "bg-gray-200 text-gray-400"
+                                      : "bg-orange-300"
+                                  } hover:bg-orange-400 text-center text-white font-bold font-heading py-3 px-5 rounded-md uppercase transition duration-200`}
                                   type="button"
+                                  disabled={quantity === 0}
                                 >
                                   Buy Now
                                 </button>
                               </div>
                               <div className="px-4">
                                 <a
-                                  className="ml-auto sm:ml-0 flex-shrink-0 inline-flex mr-4 items-center justify-center w-12 h-12 rounded-md border hover:border-gray-500"
+                                  onClick={
+                                    quantity > 0 ? handleAddToCart : null
+                                  }
+                                  className={`ml-auto sm:ml-0 flex-shrink-0 inline-flex mr-4 items-center justify-center w-12 h-12 rounded-md border hover:border-gray-500 ${
+                                    quantity === 0 ? "pointer-events-none" : ""
+                                  }`}
                                   href="#"
                                 >
                                   <svg
@@ -422,6 +521,50 @@ const ProductPage = () => {
                                 </a>
                               </div>
                             </div>
+                            {showMaxQuantityAlert && (
+                              <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                <div className="bg-white p-5 rounded-md shadow-lg text-center">
+                                  <svg
+                                    height="48"
+                                    version="1.1"
+                                    width="48"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="text-red-500 mx-auto"
+                                  >
+                                    <g transform="translate(0 -1028.4)">
+                                      <path
+                                        d="m22 12c0 5.523-4.477 10-10 10-5.5228 0-10-4.477-10-10 0-5.5228 4.4772-10 10-10 5.523 0 10 4.4772 10 10z"
+                                        fill="#c0392b"
+                                        transform="translate(0 1029.4)"
+                                      />
+                                      <path
+                                        d="m22 12c0 5.523-4.477 10-10 10-5.5228 0-10-4.477-10-10 0-5.5228 4.4772-10 10-10 5.523 0 10 4.4772 10 10z"
+                                        fill="#e74c3c"
+                                        transform="translate(0 1028.4)"
+                                      />
+                                      <path
+                                        d="m7.0503 1037.8 3.5357 3.6-3.5357 3.5 1.4142 1.4 3.5355-3.5 3.536 3.5 1.414-1.4-3.536-3.5 3.536-3.6-1.414-1.4-3.536 3.5-3.5355-3.5-1.4142 1.4z"
+                                        fill="#c0392b"
+                                      />
+                                      <path
+                                        d="m7.0503 1036.8 3.5357 3.6-3.5357 3.5 1.4142 1.4 3.5355-3.5 3.536 3.5 1.414-1.4-3.536-3.5 3.536-3.6-1.414-1.4-3.536 3.5-3.5355-3.5-1.4142 1.4z"
+                                        fill="#ecf0f1"
+                                      />
+                                    </g>
+                                  </svg>
+                                  <p className="text-lg font-semibold text-gray-800 mb-4 max-w-sm mx-auto">
+                                    Cannot add more, item already in cart with
+                                    maximum quantity reached.
+                                  </p>
+                                  <button
+                                    onClick={handleCloseAlert}
+                                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-md"
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -443,23 +586,23 @@ const ProductPage = () => {
                     <li className="w-1/2 md:w-auto">
                       <button
                         className={`inline-block py-6 px-10 text-gray-500 font-bold font-heading ${
-                          tab === "Customer reviews"
+                          tab === "Sample galleries"
                             ? "bg-white shadow-2xl"
                             : ""
                         }`}
-                        onClick={() => handleTabChange("Customer reviews")}
+                        onClick={() => handleTabChange("Sample galleries")}
                       >
-                        Customer reviews
+                        Sample galleries
                       </button>
-                    </li> 
+                    </li>
                     <li className="w-1/2 md:w-auto">
                       <button
                         className={`inline-block py-6 px-10 text-gray-500 font-bold font-heading ${
-                          tab === "Brand" ? "bg-white shadow-2xl" : ""
+                          tab === "Review" ? "bg-white shadow-2xl" : ""
                         }`}
-                        onClick={() => handleTabChange("Brand")}
+                        onClick={() => handleTabChange("Review")}
                       >
-                        Brand
+                        Review
                       </button>
                     </li>
                   </ul>
@@ -554,6 +697,20 @@ const ProductPage = () => {
                           </tr>
                         </tbody>
                       </table>
+                    </div>
+                  )}
+                  {tab === "Sample galleries" && (
+                    <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center mt-5">
+                        {camera.images.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`Sample ${index + 1}`}
+                            className="my-2 cursor-pointer w-2/3 h-1/2"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -54,7 +54,7 @@ public class AuthServiceImpl implements IAuthService {
         return AuthResponse.builder()
                 .token(token)
                 .refreshToken(jwtService.generateRefreshToken(user))
-                .email(user.getEmail())
+                .id(user.getId())
                 .build();
     }
 
@@ -112,7 +112,7 @@ public class AuthServiceImpl implements IAuthService {
         return AuthResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken.getRefreshToken())
-                .email(user.getEmail())
+                .id(user.getId())
                 .build();
     }
 }

@@ -27,13 +27,5 @@ public class OrderDetail {
     private int quantity;
     private Double discount;
     private Double price;
-
-    public double calPrice() {
-        return price - (price / 100) * discount;
-    }
-
-    public double calSum() {
-        return calPrice() * discount;
-    }
 }
 
