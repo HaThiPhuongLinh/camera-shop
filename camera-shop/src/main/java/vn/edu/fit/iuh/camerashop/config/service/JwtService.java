@@ -1,8 +1,7 @@
 package vn.edu.fit.iuh.camerashop.config.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JwtService {
     @Value("${jwt.secret}")
@@ -24,6 +24,8 @@ public class JwtService {
     private long refreshTokenExpiration;
 
     public String extractEmail(String token) {
+        if(!isTokenValidate(token))
+            return null;
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -32,11 +34,27 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secret).build().parseSignedClaims(token).getBody();
+    public Boolean isTokenValidate(String authToken){
+        try {
+            Jwts.parser().setSigningKey(secret).build().parseClaimsJws(authToken);
+            return true;
+        }catch (MalformedJwtException e){
+            log.error("Invalid JWT token");
+        }catch (ExpiredJwtException ex){
+            log.error("Expired JWT token");
+        }catch (UnsupportedJwtException ex){
+            log.error("Unsupported JWT token");
+        }catch (IllegalArgumentException ex) {
+            log.error("JWT claims string is empty");
+        }
+        return false;
     }
 
-    public Boolean isTokenValid(String token, UserDetails userDetails) {
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(secret).build().parseClaimsJws(token).getBody();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractEmail(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

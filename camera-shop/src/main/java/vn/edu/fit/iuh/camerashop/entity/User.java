@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import vn.edu.fit.iuh.camerashop.entity.enums.Role;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class User implements UserDetails {
     private String phone;
     private String address;
     private LocalDate dateOfBirth;
+    private LocalDateTime createAt;
     private Role role;
     private boolean status;
 

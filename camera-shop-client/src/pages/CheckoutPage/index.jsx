@@ -1,24 +1,60 @@
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import orderApi from "../../api/orderApi";
+import userApi from "../../api/userApi";
 import useAuthStore from "../../hooks/authStore";
 import cartApi from "../../api/cartApi";
+import { useNavigate } from "react-router-dom";
+import {
+  isValidFullName,
+  isValidPhone,
+  isValidAddress,
+} from "../../utils/Validate";
 
 const CheckoutPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const checkoutData = location.state.checkedCartItems;
   const { userId } = useAuthStore();
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [orderError, setOrderError] = useState(null);
 
-  const [formData, setFormData] = useState({
-    full_name: "",
-    phone_number: "",
-    address: "",
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
+  const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await userApi.getUserById(userId);
+        setFormData({
+          full_name: response.fullName,
+          phone_number: response.phone,
+          address: response.address,
+        });
+        setUserDataLoaded(true);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
+
+  const [formErrors, setFormErrors] = useState({
+    full_name: false,
+    phone_number: false,
+    address: false,
   });
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "full_name")
+      setFormErrors({ ...formErrors, full_name: !isValidFullName(value) });
+    if (name === "phone_number")
+      setFormErrors({ ...formErrors, phone_number: !isValidPhone(value) });
+    if (name === "address")
+      setFormErrors({ ...formErrors, address: !isValidAddress(value) });
   };
 
   const itemTotals = checkoutData.map((item) => ({
@@ -39,37 +75,51 @@ const CheckoutPage = () => {
 
   const handleOrder = async (e) => {
     e.preventDefault();
-    try {
-      const orderData = {
-        userId,
-        total: totalWithShipping,
-        quantity: checkoutData.reduce(
-          (totalQuantity, item) => totalQuantity + item.quantity,
-          0
-        ),
-        orderDetails: itemTotals.map((item) => ({
-          variantId: item.variantId,
-          quantity: item.quantity,
-          discount: item.discount,
-          price: item.price,
-        })),
-        shipAddress: formData.address,
-        customerName: formData.full_name,
-        customerPhone: formData.phone_number,
-      };
 
-      const response = await orderApi.createOrder(orderData);
-      console.log("Order created successfully!", response);
+    const { full_name, phone_number, address } = formData;
 
-      const cartResponse = await cartApi.getCartByUserId(userId);
-      const totalItems = cartResponse.totalItems;
-      const totalPrice = cartResponse.totalPrice;
+    const errors = {
+      full_name: !isValidFullName(full_name),
+      phone_number: !isValidPhone(phone_number),
+      address: !isValidAddress(address),
+    };
 
-      useAuthStore.getState().updateTotalItems(totalItems);
-      useAuthStore.getState().updateTotalPrice(totalPrice);
-    } catch (error) {
-      setOrderError(error.response.data);
-      setShowErrorAlert(true);
+    setFormErrors(errors);
+
+    if (!Object.values(errors).includes(true)) {
+      try {
+        const orderData = {
+          userId,
+          total: totalWithShipping,
+          quantity: checkoutData.reduce(
+            (totalQuantity, item) => totalQuantity + item.quantity,
+            0
+          ),
+          variantData: checkoutData,
+          orderDetails: itemTotals.map((item) => ({
+            variantId: item.variantId,
+            quantity: item.quantity,
+            discount: item.discount,
+            price: item.price,
+          })),
+          shipAddress: formData.address,
+          customerName: formData.full_name,
+          customerPhone: formData.phone_number,
+        };
+
+        const response = await orderApi.createOrder(orderData);
+        navigate("/order-success", { state: { order: response, orderData } });
+
+        const cartResponse = await cartApi.getCartByUserId(userId);
+        const totalItems = cartResponse.totalItems;
+        const totalPrice = cartResponse.totalPrice;
+
+        useAuthStore.getState().updateTotalItems(totalItems);
+        useAuthStore.getState().updateTotalPrice(totalPrice);
+      } catch (error) {
+        setOrderError(error.response.data);
+        setShowErrorAlert(true);
+      }
     }
   };
 
@@ -93,66 +143,87 @@ const CheckoutPage = () => {
                       <h6 className="mb-8 text-lg font-semibold">
                         Shipping address
                       </h6>
-                      <div className="flex flex-wrap -m-4 mb-2">
-                        <div className="w-full p-4">
-                          <div className="mb-6">
-                            <label
-                              htmlFor="input-full-name"
-                              className="mb-1.5 inline-block text-sm font-semibold"
-                            >
-                              Full name
-                            </label>
-                            <input
-                              id="input-full-name"
-                              name="full_name"
-                              type="text"
-                              className="py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200"
-                              placeholder="Enter your full name"
-                              value={formData.full_name}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
-                          <div className="mb-6">
-                            <div>
+                      {userDataLoaded && (
+                        <div className="flex flex-wrap -m-4 mb-2">
+                          <div className="w-full p-4">
+                            <div className="mb-6">
                               <label
-                                htmlFor="input-phone-number"
+                                htmlFor="input-full-name"
                                 className="mb-1.5 inline-block text-sm font-semibold"
                               >
-                                Phone number
+                                Full name
                               </label>
                               <input
-                                id="input-phone-number"
-                                name="phone_number"
+                                name="full_name"
                                 type="text"
-                                className="py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200"
-                                placeholder="Enter your phone number"
-                                value={formData.phone_number}
+                                className={`py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200 ${
+                                  formErrors.full_name ? "border-red-500" : ""
+                                }`}
+                                placeholder="Enter your full name"
+                                value={formData.full_name}
                                 onChange={handleInputChange}
                                 required
                               />
+                              <p className="text-gray-500 text-xs mt-1">
+                                Full name must be at least 2 words, with the
+                                first letter of each word capitalized.
+                              </p>
+                            </div>
+                            <div className="mb-6">
+                              <div>
+                                <label
+                                  htmlFor="input-phone-number"
+                                  className="mb-1.5 inline-block text-sm font-semibold"
+                                >
+                                  Phone number
+                                </label>
+                                <input
+                                  id="input-phone-number"
+                                  name="phone_number"
+                                  type="text"
+                                  className={`py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200 ${
+                                    formErrors.phone_number
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                  placeholder="Enter your phone number"
+                                  value={formData.phone_number}
+                                  onChange={handleInputChange}
+                                  required
+                                />
+                                <p className="text-gray-500 text-xs mt-1">
+                                  Phone number must start with 0 and have 10 or
+                                  11 digits.
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="input-address"
+                                className="mb-1.5 inline-block text-sm font-semibold"
+                              >
+                                Address
+                              </label>
+                              <input
+                                id="input-address"
+                                name="address"
+                                type="text"
+                                className={`py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200 ${
+                                  formErrors.address ? "border-red-500" : ""
+                                }`}
+                                placeholder="Enter your address"
+                                value={formData.address}
+                                onChange={handleInputChange}
+                                required
+                              />
+                              <p className="text-gray-500 text-xs mt-1">
+                                Address must contain numbers, letters, and
+                                spaces.
+                              </p>
                             </div>
                           </div>
-                          <div>
-                            <label
-                              htmlFor="input-address"
-                              className="mb-1.5 inline-block text-sm font-semibold"
-                            >
-                              Address
-                            </label>
-                            <input
-                              id="input-address"
-                              name="address"
-                              type="text"
-                              className="py-3 px-4 w-full text-sm placeholder-gray-500 outline-none border border-gray-100 focus:border-gray-300 focus:ring focus:ring-gray-100 rounded-md transition duration-200"
-                              placeholder="Enter your address"
-                              value={formData.address}
-                              onChange={handleInputChange}
-                              required
-                            />
-                          </div>
                         </div>
-                      </div>
+                      )}
                       <h6 className="mb-4 text-lg font-semibold">
                         Shipping method
                       </h6>
@@ -203,19 +274,16 @@ const CheckoutPage = () => {
                                     alt={item.cameraName}
                                   />
                                 </div>
-                                <div className="flex-1 p-2">
-                                  <p className="mb-1.5">{item.cameraName}</p>
+                                <div className="flex-1 p-1">
+                                  <p className="mb-1.5 mt-3">
+                                    {item.cameraName}
+                                  </p>
                                   <div className="flex space-x-3 text-gray-400">
                                     {item.color && (
                                       <p className="mb-1.5">{item.color}</p>
                                     )}
                                     {item.style && (
-                                      <>
-                                        <p className="mb-1.5">{item.style}</p>
-                                        {item.set && (
-                                          <span className="comma">,</span>
-                                        )}
-                                      </>
+                                      <p className="mb-1.5">{item.style}</p>
                                     )}
                                     {item.set && (
                                       <p className="mb-1.5">{item.set}</p>

@@ -16,23 +16,27 @@ const SignupPage = () => {
   const [slideWidth, setSlideWidth] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    phone: "",
+    address: "",
+    day: "",
+    month: "",
+    year: "",
+  });
 
-  const [fullNameError, setFullNameError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
-  const [phoneError, setPhoneError] = useState(false);
-  const [addressError, setAddressError] = useState(false);
-  const [dayError, setDayError] = useState(false);
-  const [monthError, setMonthError] = useState(false);
-  const [yearError, setYearError] = useState(false);
+  const [formErrors, setFormErrors] = useState({
+    fullName: false,
+    email: false,
+    password: false,
+    phone: false,
+    address: false,
+    day: false,
+    month: false,
+    year: false,
+  });
 
   useEffect(() => {
     if (slideRefs[0].current) {
@@ -45,70 +49,44 @@ const SignupPage = () => {
     setSlideWidth(slideRefs[index].current.offsetWidth * index);
   };
 
-  const handleFullNameChange = (e) => {
-    const value = e.target.value;
-    setFullName(value);
-    setFullNameError(!isValidFullName(value));
-  };
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    setEmailError(!isValidEmail(value));
-  };
-
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setPasswordError(!isValidPassword(value));
-  };
-
-  const handlePhoneChange = (e) => {
-    const value = e.target.value;
-    setPhone(value);
-    setPhoneError(!isValidPhone(value));
-  };
-
-  const handleAddressChange = (e) => {
-    const value = e.target.value;
-    setAddress(value);
-    setAddressError(!isValidAddress(value));
-  };
-
-  const handleDayChange = (e) => {
-    setDay(e.target.value);
-    setDayError(e.target.value === "");
-  };
-
-  const handleMonthChange = (e) => {
-    setMonth(e.target.value);
-    setMonthError(e.target.value === "");
-  };
-
-  const handleYearChange = (e) => {
-    setYear(e.target.value);
-    setYearError(e.target.value === "");
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "fullName")
+      setFormErrors({ ...formErrors, fullName: !isValidFullName(value) });
+    if (name === "email")
+      setFormErrors({ ...formErrors, email: !isValidEmail(value) });
+    if (name === "password")
+      setFormErrors({ ...formErrors, password: !isValidPassword(value) });
+    if (name === "phone")
+      setFormErrors({ ...formErrors, phone: !isValidPhone(value) });
+    if (name === "address")
+      setFormErrors({ ...formErrors, address: !isValidAddress(value) });
+    if (name === "day") setFormErrors({ ...formErrors, day: value === "" });
+    if (name === "month") setFormErrors({ ...formErrors, month: value === "" });
+    if (name === "year") setFormErrors({ ...formErrors, year: value === "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setFullNameError(!isValidFullName(fullName));
-    setEmailError(!isValidEmail(email));
-    setPasswordError(!isValidPassword(password));
-    setPhoneError(!isValidPhone(phone));
-    setAddressError(!isValidAddress(address));
-    setDayError(day === "");
-    setMonthError(month === "");
-    setYearError(year === "");
+    const { fullName, email, password, phone, address, day, month, year } =
+      formData;
 
-    if (
-      !fullNameError &&
-      !emailError &&
-      !passwordError &&
-      !phoneError &&
-      !addressError
-    ) {
+    const errors = {
+      fullName: !isValidFullName(fullName),
+      email: !isValidEmail(email),
+      password: !isValidPassword(password),
+      phone: !isValidPhone(phone),
+      address: !isValidAddress(address),
+      day: day === "",
+      month: month === "",
+      year: year === "",
+    };
+
+    setFormErrors(errors);
+
+    if (!Object.values(errors).includes(true)) {
       const dateOfBirth = `${year}-${month.padStart(2, "0")}-${day.padStart(
         2,
         "0"
@@ -249,11 +227,12 @@ const SignupPage = () => {
                       </label>
                       <input
                         className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                          fullNameError ? "border-red-500" : ""
+                          formErrors.fullName ? "border-red-500" : ""
                         }`}
-                        placeholder="Katty Perry "
-                        value={fullName}
-                        onChange={handleFullNameChange}
+                        name="fullName"
+                        value={formData.fullName}
+                         placeholder="Katty Perry"
+                        onChange={handleInputChange}
                         required
                       />
                       <p className="text-gray-500 text-xs mt-1">
@@ -270,12 +249,13 @@ const SignupPage = () => {
                       </label>
                       <input
                         className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                          emailError ? "border-red-500" : ""
+                          formErrors.email ? "border-red-500" : ""
                         }`}
                         type="email"
                         placeholder="eyesee@gmail.com"
-                        value={email}
-                        onChange={handleEmailChange}
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
                         required
                       />
                       <p className="text-gray-500 text-xs mt-1">
@@ -294,12 +274,13 @@ const SignupPage = () => {
                       <div className="relative">
                         <input
                           className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                            passwordError ? "border-red-500" : ""
+                            formErrors.password ? "border-red-500" : ""
                           }`}
                           type="password"
                           placeholder="Enter your password"
-                          value={password}
-                          onChange={handlePasswordChange}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
                           required
                         />
                         <p className="text-gray-500 text-xs mt-1">
@@ -322,12 +303,13 @@ const SignupPage = () => {
                         <div className="relative">
                           <input
                             className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                              phoneError ? "border-red-500" : ""
+                              formErrors.phone ? "border-red-500" : ""
                             }`}
                             type="text"
                             placeholder="0123456789"
-                            value={phone}
-                            onChange={handlePhoneChange}
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
                             required
                           />
                           <p className="text-gray-500 text-xs mt-1">
@@ -348,12 +330,13 @@ const SignupPage = () => {
                         <div className="relative">
                           <input
                             className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                              addressError ? "border-red-500" : ""
+                              formErrors.address ? "border-red-500" : ""
                             }`}
                             type="text"
                             placeholder="123 San Francisco, USA"
-                            value={address}
-                            onChange={handleAddressChange}
+                            name="address"
+                            value={formData.address}
+                            onChange={handleInputChange}
                             required
                           />
                           <p className="text-gray-500 text-xs mt-1">
@@ -376,10 +359,11 @@ const SignupPage = () => {
                           <div className="flex-1 mr-2">
                             <select
                               className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                                dayError ? "border-red-500" : ""
+                                formErrors.day ? "border-red-500" : ""
                               }`}
-                              value={day}
-                              onChange={handleDayChange}
+                              value={formData.day}
+                              onChange={handleInputChange}
+                              name="day"
                             >
                               <option value="">Day</option>
                               {Array.from({ length: 31 }, (_, i) => i + 1).map(
@@ -394,10 +378,11 @@ const SignupPage = () => {
                           <div className="flex-1 mr-2">
                             <select
                               className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                                monthError ? "border-red-500" : ""
+                                formErrors.month ? "border-red-500" : ""
                               }`}
-                              value={month}
-                              onChange={handleMonthChange}
+                              value={formData.month}
+                              onChange={handleInputChange}
+                              name="month"
                             >
                               <option value="">Month</option>
                               {Array.from({ length: 12 }, (_, i) => i + 1).map(
@@ -412,10 +397,11 @@ const SignupPage = () => {
                           <div className="flex-1">
                             <select
                               className={`w-full py-3 px-4 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-500 focus:outline-purple rounded-lg ${
-                                yearError ? "border-red-500" : ""
+                                formErrors.year ? "border-red-500" : ""
                               }`}
-                              value={year}
-                              onChange={handleYearChange}
+                              value={formData.year}
+                              onChange={handleInputChange}
+                              name="year"
                             >
                               <option value="">Year</option>
                               {Array.from(

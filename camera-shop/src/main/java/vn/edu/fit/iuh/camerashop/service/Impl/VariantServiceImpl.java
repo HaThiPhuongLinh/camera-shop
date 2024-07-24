@@ -4,21 +4,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import vn.edu.fit.iuh.camerashop.dto.dto.TopSellingVariant;
 import vn.edu.fit.iuh.camerashop.dto.request.VariantRequest;
 import vn.edu.fit.iuh.camerashop.entity.Camera;
+import vn.edu.fit.iuh.camerashop.entity.Order;
+import vn.edu.fit.iuh.camerashop.entity.OrderDetail;
 import vn.edu.fit.iuh.camerashop.entity.Variant;
 import vn.edu.fit.iuh.camerashop.entity.enums.Role;
+import vn.edu.fit.iuh.camerashop.entity.enums.Status;
 import vn.edu.fit.iuh.camerashop.exception.NotFoundException;
+import vn.edu.fit.iuh.camerashop.repository.OrderDetailRepository;
+import vn.edu.fit.iuh.camerashop.repository.OrderRepository;
 import vn.edu.fit.iuh.camerashop.repository.VariantRepository;
 import vn.edu.fit.iuh.camerashop.service.IVariantService;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class VariantServiceImpl implements IVariantService {
     @Autowired
     private VariantRepository variantRepository;
+
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private CameraServiceImpl cameraService;
@@ -46,6 +58,51 @@ public class VariantServiceImpl implements IVariantService {
         } else {
             throw new NotFoundException("Variant not found");
         }
+    }
+
+    @Override
+    public List<TopSellingVariant> getTopSellingVariants() {
+        List<Order> deliveredOrders = orderRepository.findOrdersByStatus(Status.DELIVERED);
+
+        Map<Long, Integer> variantSales = new HashMap<>();
+
+        for (Order order : deliveredOrders) {
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(order.getId());
+            for (OrderDetail orderDetail : orderDetails) {
+                long variantId = orderDetail.getVariant().getId();
+                int quantity = orderDetail.getQuantity();
+                variantSales.put(variantId, variantSales.getOrDefault(variantId, 0) + quantity);
+            }
+        }
+
+        List<Variant> allVariants = variantRepository.findAll();
+
+        List<TopSellingVariant> topSellingVariants = new ArrayList<>();
+
+        for (Variant variant : allVariants) {
+            long variantId = variant.getId();
+            if (variantSales.containsKey(variantId)) {
+                int quantitySold = variantSales.get(variantId);
+                double discountedPrice = variant.getPrice() * (1 - variant.getDiscount() / 100.0);
+                String cameraName = variant.getCamera().getName();
+                String imgURL = variant.getImages().isEmpty() ? "" : variant.getImages().get(0);
+
+                TopSellingVariant topSellingVariant = TopSellingVariant.builder()
+                        .variantId(variantId)
+                        .cameraName(cameraName)
+                        .quantitySold(quantitySold)
+                        .price(discountedPrice)
+                        .imgURL(imgURL)
+                        .build();
+
+                topSellingVariants.add(topSellingVariant);
+            }
+        }
+
+        return topSellingVariants.stream()
+                .sorted(Comparator.comparingInt(TopSellingVariant::getQuantitySold).reversed())
+                .limit(6)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -83,7 +140,7 @@ public class VariantServiceImpl implements IVariantService {
         variant.setDiscount(variantRequest.getDiscount());
         variant.setPrice(variantRequest.getPrice());
         variant.setImages(variantRequest.getImages());
-        variant.setActive(variant.isActive());
+        variant.setActive(variantRequest.isActive());
 
         variantRepository.save(variant);
     }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewRequest {
+    private String orderId;
     private long userId;
     private long cameraId;
     private String content;

@@ -17,6 +17,11 @@ public class Review {
     private Review_PK review_pk;
 
     @ManyToOne
+    @MapsId("order")
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @ManyToOne
     @MapsId("user")
     @JoinColumn(name = "user_id")
     private User user;

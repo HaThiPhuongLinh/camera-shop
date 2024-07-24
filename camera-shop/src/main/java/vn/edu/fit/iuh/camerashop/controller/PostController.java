@@ -21,7 +21,6 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<Post>> getAll() {
         return ResponseEntity.ok(postService.getAll());
-
     }
 
     @GetMapping("/{id}")
@@ -33,7 +32,6 @@ public class PostController {
     public ResponseEntity<SuccessResponse> add(@RequestBody PostRequest request) {
         postService.add(request);
         return ResponseEntity.ok(new SuccessResponse("Created post successfully"));
-
     }
 
     @PutMapping("/{id}")

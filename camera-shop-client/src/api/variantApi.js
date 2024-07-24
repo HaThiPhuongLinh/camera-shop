@@ -35,6 +35,11 @@ const variantApi = {
     const url = `/variant/camera/${cameraId}`;
     return axiosClient.get(url);
   },
+
+  getTopSellingVariants: () => {
+    const url = '/variant/top-selling-variants';
+    return axiosClient.get(url);
+  },
 };
 
 export default variantApi;

@@ -18,7 +18,7 @@ public class CameraController {
     private ICameraService cameraService;
 
     @GetMapping
-    public ResponseEntity<List<CameraDTO>> getAllCameras() {
+    public ResponseEntity<Object> getAllCameras() {
         return ResponseEntity.ok(cameraService.getAllCameras());
     }
 

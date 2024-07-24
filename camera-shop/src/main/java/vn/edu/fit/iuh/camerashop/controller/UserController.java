@@ -26,6 +26,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getById(id));
     }
 
+    @PostMapping("/{id}")
+    public ResponseEntity<SuccessResponse> activeUser(@PathVariable long id) {
+        userService.activeUser(id);
+        return ResponseEntity.ok(new SuccessResponse("Active user successfully"));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<SuccessResponse> updateUser(@PathVariable long id, @RequestBody UserRequest userRequest) {
         userService.updateUser(id, userRequest);

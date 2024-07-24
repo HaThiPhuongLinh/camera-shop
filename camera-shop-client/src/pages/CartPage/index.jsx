@@ -198,7 +198,7 @@ const CartPage = () => {
                               />
                             </a>
 
-                            <div className="w-full md:w-auto px-4 mb-6 lg:mb-0">
+                            <div className="w-full md:w-auto px-4 mb-6 lg:mb-0 text-left">
                               <a
                                 className="block mb-5 text-xl font-heading font-medium hover:underline"
                                 href="#"

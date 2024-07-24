@@ -46,43 +46,48 @@ public class SecurityConfig {
                     .requestMatchers(AUTH_WHITELIST).permitAll()
 
                     .requestMatchers("/auth/login",
+                            "/auth/refreshToken",
                             "/auth/register",
                             "/email/**")
-                            .permitAll()
+                    .permitAll()
 
                     .requestMatchers(HttpMethod.GET, "/camera/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/brand/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/category/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/variant/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/post/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/feature/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/review/**").permitAll()
 
-                    .requestMatchers(HttpMethod.POST, "/camera/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/camera/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/camera/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.GET, "/order/**").permitAll()
 
-                    .requestMatchers(HttpMethod.POST, "/brand/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/brand/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/brand/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/camera/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/camera/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/camera/**").hasAnyAuthority(Role.ADMIN.name())
 
-                    .requestMatchers(HttpMethod.POST, "/category/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/category/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/category/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/brand/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/brand/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/brand/**").hasAnyAuthority(Role.ADMIN.name())
 
-                    .requestMatchers(HttpMethod.POST, "/variant/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/variant/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/variant/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/category/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/category/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/category/**").hasAnyAuthority(Role.ADMIN.name())
 
-                    .requestMatchers(HttpMethod.POST, "/feature/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/feature/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/feature/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/variant/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/variant/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/variant/**").hasAnyAuthority(Role.ADMIN.name())
 
-                    .requestMatchers(HttpMethod.POST, "/review/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/review/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.DELETE, "/review/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/post/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/post/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/post/**").hasAnyAuthority(Role.ADMIN.name())
 
-                    .requestMatchers(HttpMethod.POST, "/order/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
-                    .requestMatchers(HttpMethod.PUT, "/order/").hasAnyAuthority(Role.ADMIN.name(), Role.STAFF.name())
+                    .requestMatchers(HttpMethod.POST, "/feature/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/feature/**").hasAnyAuthority(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/feature/**").hasAnyAuthority(Role.ADMIN.name())
+
+                    .requestMatchers(HttpMethod.DELETE, "/review/**").hasAnyAuthority(Role.ADMIN.name())
+
+                    .requestMatchers(HttpMethod.PUT, "/order/**").hasAnyAuthority(Role.ADMIN.name())
 
                     .anyRequest().authenticated();
 
@@ -90,12 +95,19 @@ public class SecurityConfig {
 
         httpSecurity.authenticationProvider(authenticationProvider());
 
-        httpSecurity.httpBasic(httpBasic ->
-                httpBasic.authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\n\tmessgae : \"" + authException.getMessage() + "\"\n}");
-                }));
+        httpSecurity.exceptionHandling(exceptionHandling -> {
+            exceptionHandling
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\n\t\"message\" : \"" + "UNAUTHORIZED" + "\"\n}");
+                    })
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\n\t\"message\" : \"" + "FORBIDDEN" + "\"\n}");
+                    });
+        });
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.httpBasic(Customizer.withDefaults());

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ICameraService {
 
-    List<CameraDTO> getAllCameras();
+    Object getAllCameras();
 
     Camera getCameraById(long id);
 

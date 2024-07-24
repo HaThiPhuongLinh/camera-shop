@@ -15,6 +15,7 @@ public class CameraRequest {
     private List<Long> features;
     private String description;
     private String ISO;
+    private String size;
     private String shootingSpeed;
     private String stabilization;
     private String resolution;
@@ -22,6 +23,7 @@ public class CameraRequest {
     private String videoResolution;
     private String battery;
     private String weight;
+    private boolean hot;
     private List<String> images;
     private boolean active;
 }

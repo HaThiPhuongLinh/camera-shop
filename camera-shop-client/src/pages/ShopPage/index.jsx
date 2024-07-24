@@ -778,7 +778,6 @@ const ShopPage = () => {
                               {/* Add to cart button */}
                               <a
                                 className="ml-auto mr-2 flex items-center justify-center w-12 h-12 border rounded-lg hover:border-gray-500"
-                                href="#"
                               >
                                 <svg
                                   width="12"

@@ -20,6 +20,11 @@ const userApi = {
     const url = `/user/${id}`;
     return axiosClient.delete(url);
   },
+
+  activeUser: (id) => {
+    const url = `/user/${id}`;
+    return axiosClient.post(url);
+  },
 };
 
 export default userApi;

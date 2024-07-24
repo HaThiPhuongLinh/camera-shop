@@ -18,4 +18,5 @@ public interface IUserService {
 
     void deleteUser(long id);
 
+    void activeUser(long id);
 }

@@ -10,5 +10,7 @@ public interface ReviewRepository extends JpaRepository<Review, Review_PK> {
 
     List<Review> findByCameraId(int cameraId);
 
-    Review findByUserIdAndCameraId(long userId, long cameraId);
+    Review findByUserIdAndOrderIdAndCameraId(long userId, String orderId, long cameraId);
+
+    List<Review> findByOrderId(String orderId);
 }

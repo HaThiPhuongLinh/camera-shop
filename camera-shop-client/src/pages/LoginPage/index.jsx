@@ -3,6 +3,7 @@ import loginApi from "./../../api/loginApi";
 import cartApi from "../../api/cartApi";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "./../../hooks/authStore";
+import userApi from "../../api/userApi";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -52,7 +53,10 @@ const LoginPage = () => {
       const totalItems = cartResponse.totalItems;
       const totalPrice = cartResponse.totalPrice;
 
-      login(userId, cartId, totalItems, totalPrice);
+      const user = await userApi.getUserById(userId);
+      console.log(user.role);
+
+      login(userId, user.role, cartId, totalItems, totalPrice);
 
       navigate("/");
       window.location.reload();

@@ -93,6 +93,7 @@ public class AuthServiceImpl implements IAuthService {
                 .address(registrationRequest.getAddress())
                 .role(Role.USER)
                 .dateOfBirth(registrationRequest.getDateOfBirth())
+                .createAt(LocalDateTime.now())
                 .status(true)
                 .build());
     }
@@ -103,7 +104,7 @@ public class AuthServiceImpl implements IAuthService {
         User user = userRepository.findByEmail(email).get();
         String token = "";
 
-        if (jwtService.isTokenValid(refreshToken.getRefreshToken(), user)) {
+        if (jwtService.validateToken(refreshToken.getRefreshToken(), user)) {
              token = jwtService.generateToken(user);
         } else {
             throw new BadRequestException("Invalid Refresh Token");

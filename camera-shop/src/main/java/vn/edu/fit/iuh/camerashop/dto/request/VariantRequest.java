@@ -19,4 +19,5 @@ public class VariantRequest {
     private double discount;
     private double price;
     private List<String> images;
+    private boolean active;
 }

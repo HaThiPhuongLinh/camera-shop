@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.service;
 
+import vn.edu.fit.iuh.camerashop.dto.dto.TopSellingVariant;
 import vn.edu.fit.iuh.camerashop.dto.request.VariantRequest;
 import vn.edu.fit.iuh.camerashop.entity.Variant;
 
@@ -10,6 +11,8 @@ public interface IVariantService {
     List<Variant> getAllVariants();
 
     Variant getVariantById(Integer id);
+
+    List<TopSellingVariant> getTopSellingVariants();
 
     void saveVariant(VariantRequest variantRequest);
 

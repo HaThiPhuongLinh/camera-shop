@@ -57,6 +57,7 @@ public class UserServiceImpl implements IUserService {
                     .phone(user.getPhone())
                     .address(user.getAddress())
                     .dateOfBirth(user.getDateOfBirth())
+                    .role(user.getRole())
                     .build();
         }
     }
@@ -75,7 +76,6 @@ public class UserServiceImpl implements IUserService {
         user.setPhone(userRequest.getPhone());
         user.setAddress(userRequest.getAddress());
         user.setDateOfBirth(userRequest.getDateOfBirth());
-        user.setStatus(user.isStatus());
 
         userRepository.save(user);
     }
@@ -84,6 +84,13 @@ public class UserServiceImpl implements IUserService {
     public void deleteUser(long id) {
         User user = getUserById(id);
         user.setStatus(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void activeUser(long id) {
+        User user = getUserById(id);
+        user.setStatus(true);
         userRepository.save(user);
     }
 }

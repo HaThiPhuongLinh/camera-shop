@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "./../../hooks/authStore";
+import useAuthStore from "../../hooks/authStore";
 import userApi from "../../api/userApi";
+import orderApi from "../../api/orderApi";
+import itemStatusApi from "../../api/itemStatusApi";
+import UserModal from "./UserModal";
+import OrdersModal from "./OrderModal";
 
 const SocialIcon = ({ src, index }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [orders, setOrders] = useState([]);
 
+  const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
   const userId = useAuthStore((state) => state.userId);
   const totalItems = useAuthStore((state) => state.totalItems);
@@ -41,12 +48,56 @@ const SocialIcon = ({ src, index }) => {
   const handleClick = () => {
     if (index === 2 && !userId) {
       navigate("/signin");
-    } else if(index === 1) {
+    } else if (index === 1) {
       navigate("/cart");
-    }
-    else {
+    } else {
       toggleDropdown();
     }
+  };
+
+  const handleAccountClick = () => {
+    setShowUserModal(true);
+    setIsOpen(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowUserModal(false);
+    setShowOrdersModal(false);
+    if (userId) {
+      userApi
+        .getUserById(userId)
+        .then((response) => {
+          setUserData(response);
+        })
+        .catch((error) => {
+          console.error("Error fetching user:", error);
+        });
+    }
+  };
+
+  const handleOrderClick = () => {
+    orderApi
+      .getAllOrdersByUserId(userId)
+      .then(async (response) => {
+        const orders = response;
+        const orderDetails = await Promise.all(
+          orders.map(async (order) => {
+            const statusResponse = await itemStatusApi.getStatusByOrderId(
+              order.id
+            );
+            const statusData = statusResponse.state;
+            return { ...order, statusData };
+          })
+        );
+
+        setOrders(orderDetails);
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+      });
+
+    setShowOrdersModal(true);
+    setIsOpen(false);
   };
 
   return (
@@ -70,13 +121,21 @@ const SocialIcon = ({ src, index }) => {
           </div>
           <ul className="py-2 text-sm text-gray-700">
             <li>
-              <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                Orders
+              <a
+                href="#"
+                className="block px-4 py-2 hover:bg-gray-100"
+                onClick={handleAccountClick}
+              >
+                Your Profile
               </a>
             </li>
             <li>
-              <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                Account
+              <a
+                href="#"
+                className="block px-4 py-2 hover:bg-gray-100"
+                onClick={handleOrderClick}
+              >
+                Orders
               </a>
             </li>
           </ul>
@@ -90,6 +149,16 @@ const SocialIcon = ({ src, index }) => {
             </a>
           </div>
         </div>
+      )}
+      {showUserModal && userData && (
+        <UserModal user={userData} onClose={handleCloseModal} />
+      )}
+      {showOrdersModal && orders && (
+        <OrdersModal
+          orders={orders}
+          onClose={handleCloseModal}
+          orderData={handleOrderClick}
+        />
       )}
     </div>
   );

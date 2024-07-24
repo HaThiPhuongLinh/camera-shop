@@ -21,6 +21,11 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.findReviewsByCameraId(cameraId));
     }
 
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<Review> getReviewByOrderId(@PathVariable String orderId) {
+        return ResponseEntity.ok(reviewService.getReviewsByOrderId(orderId));
+    }
+
     @PostMapping
     public ResponseEntity<SuccessResponse> saveReview(@RequestBody ReviewRequest reviewRequest) {
         reviewService.saveReview(reviewRequest);
@@ -33,9 +38,9 @@ public class ReviewController {
         return ResponseEntity.ok(new SuccessResponse("Updated review successfully"));
     }
 
-    @DeleteMapping("/{userId}/{cameraId}")
-    public ResponseEntity<SuccessResponse> deleteReview(@PathVariable long userId, @PathVariable long cameraId) {
-        reviewService.deleteReview(userId, cameraId);
+    @DeleteMapping("/{userId}/{orderId}/{cameraId}")
+    public ResponseEntity<SuccessResponse> deleteReview(@PathVariable long userId, @PathVariable String orderId,  @PathVariable long cameraId) {
+        reviewService.deleteReview(userId, orderId, cameraId);
         return ResponseEntity.ok(new SuccessResponse("Deleted review successfully"));
     }
 }

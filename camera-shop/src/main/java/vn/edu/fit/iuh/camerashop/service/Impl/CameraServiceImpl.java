@@ -36,14 +36,16 @@ public class CameraServiceImpl implements ICameraService {
         return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Role.ADMIN.name()));
     }
 
-    public List<CameraDTO> getAllCameras() {
+    @Override
+    public Object getAllCameras() {
         List<Camera> cameras;
         if (isAdmin()) {
             cameras = cameraRepository.findAll();
+            return cameras;
         } else {
             cameras = cameraRepository.findByActiveIsTrue();
+            return getCameraDTOS(cameras);
         }
-        return getCameraDTOS(cameras);
     }
 
     @Override
@@ -96,6 +98,7 @@ public class CameraServiceImpl implements ICameraService {
                 .features(features)
                 .description(request.getDescription())
                 .ISO(request.getISO())
+                .size(request.getSize())
                 .shootingSpeed(request.getShootingSpeed())
                 .stabilization(request.getStabilization())
                 .resolution(request.getResolution())
@@ -104,6 +107,7 @@ public class CameraServiceImpl implements ICameraService {
                 .battery(request.getBattery())
                 .weight(request.getWeight())
                 .images(request.getImages())
+                .hot(request.isHot())
                 .active(true)
                 .build();
 
@@ -127,6 +131,7 @@ public class CameraServiceImpl implements ICameraService {
         camera.setWarrantyPeriod(request.getWarrantyPeriod());
         camera.setDescription(request.getDescription());
         camera.setISO(request.getISO());
+        camera.setSize(request.getSize());
         camera.setShootingSpeed(request.getShootingSpeed());
         camera.setStabilization(request.getStabilization());
         camera.setResolution(request.getResolution());
@@ -136,6 +141,7 @@ public class CameraServiceImpl implements ICameraService {
         camera.setWeight(request.getWeight());
         camera.setImages(request.getImages());
         camera.setActive(request.isActive());
+        camera.setHot(request.isHot());
         camera.setBrand(brand);
         camera.setCategory(category);
 
