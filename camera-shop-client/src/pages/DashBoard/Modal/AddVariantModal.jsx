@@ -93,8 +93,6 @@ const AddVariantModal = ({ isOpen, onRequestClose }) => {
       cameraId: selectedCamera === null,
       source: !newVariant.source.trim(),
       color: !newVariant.color.trim(),
-      quantity: !newVariant.quantity,
-      discount: !newVariant.discount,
       price: !newVariant.price,
       images: newVariant.images.some((image) => !image.trim()),
     };

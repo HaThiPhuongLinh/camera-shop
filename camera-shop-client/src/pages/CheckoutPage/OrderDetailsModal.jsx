@@ -34,7 +34,7 @@ const OrderDetailsModal = ({ order, orderData, closeModal }) => {
                 key={item.variantId}
                 className="flex flex-wrap items-center -m-4"
               >
-                <div className="w-full md:w-1/3 p-4">
+                <div className="w-full md:w-1/2 p-4">
                   <div className="flex items-center gap-4 flex-wrap">
                     <img
                       className="h-20 rounded-xl"
@@ -52,7 +52,7 @@ const OrderDetailsModal = ({ order, orderData, closeModal }) => {
                   </div>
                 </div>
 
-                <div className="w-full md:w-1/3 p-4">
+                <div className="w-full md:w-1/4 p-4">
                   <div className="flex md:justify-center">
                     <p>
                       <span>Quantity:</span>
@@ -60,7 +60,7 @@ const OrderDetailsModal = ({ order, orderData, closeModal }) => {
                     </p>
                   </div>
                 </div>
-                <div className="w-full md:w-1/3 p-4">
+                <div className="w-full md:w-1/4 p-4">
                   <p className="text-green-900 font-semibold md:text-right">
                     $
                     {(

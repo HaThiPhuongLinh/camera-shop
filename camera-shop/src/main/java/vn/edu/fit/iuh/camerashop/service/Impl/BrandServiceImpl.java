@@ -1,6 +1,8 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class BrandServiceImpl implements IBrandService {
     }
 
     @Override
+    @Cacheable(value = "brands", key = "'all'")
     public List<Brand> getAll() {
         if (isAdmin()) {
             return brandRepository.findAll();
@@ -33,6 +36,7 @@ public class BrandServiceImpl implements IBrandService {
     }
 
     @Override
+    @Cacheable(value = "brand", key = "#id")
     public Brand findById(long id) {
         Brand brand = brandRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Brand not found"));
 
@@ -44,6 +48,7 @@ public class BrandServiceImpl implements IBrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", allEntries = true)
     public void add(BrandRequest request) {
         Brand brand = Brand.builder()
                 .brandName(request.getBrandName())
@@ -56,6 +61,7 @@ public class BrandServiceImpl implements IBrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", key = "#id")
     public void update(long id, BrandRequest request) {
         Brand brand = findById(id);
 
@@ -68,6 +74,7 @@ public class BrandServiceImpl implements IBrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", key = "#id")
     public void delete(long id) {
         Brand brand = findById(id);
         brand.setActive(false);

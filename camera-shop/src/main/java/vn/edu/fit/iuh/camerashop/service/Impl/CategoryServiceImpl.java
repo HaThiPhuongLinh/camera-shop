@@ -1,6 +1,8 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Cacheable(value = "categories", key = "'all'")
     public List<Category> getAll() {
         if (isAdmin()) {
             return categoryRepository.findAll();
@@ -34,6 +37,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Cacheable(value = "category", key = "#id")
     public Category findById(long id) {
         Category category = categoryRepository.findById((int) id).orElseThrow(() -> new NotFoundException("Category not found"));
 
@@ -57,6 +61,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @CacheEvict(value = "category", key = "#id")
     public void update(long id, CategoryRequest request) {
         Category category = findById(id);
 
@@ -69,6 +74,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @CacheEvict(value = "category", key = "#id")
     public void delete(long id) {
         Category category = findById(id);
         category.setActive(false);

@@ -18,11 +18,11 @@ const Footer = () => {
     }
 
     try {
-      await emailApi.sendEmail(email);
+      emailApi.sendEmail(email);
       setShowSuccessPopup(true);
       setTimeout(() => {
         setShowSuccessPopup(false);
-      }, 3000);
+      }, 2000);
       emailInput.value = "";
     } catch (error) {
       console.error("Error sending email:", error);

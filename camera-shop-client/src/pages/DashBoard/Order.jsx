@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
 import orderApi from "../../api/orderApi";
 import itemStatusApi from "../../api/itemStatusApi";
 import { getOrderStatus } from "../../helpers";
@@ -136,7 +137,7 @@ export default function Order() {
                       ${order.total.toFixed(2)}
                     </td>
                     <td className="px-4 py-3 border-b border-gray-300">
-                      {new Date(order.createAt).toLocaleString()}
+                    {format(new Date(order.createAt), "dd MMM yyyy HH:mm")}
                     </td>
                     <td className="px-4 py-3 border-b border-gray-300">
                       {order.quantity}

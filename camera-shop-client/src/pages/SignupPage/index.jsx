@@ -231,7 +231,7 @@ const SignupPage = () => {
                         }`}
                         name="fullName"
                         value={formData.fullName}
-                         placeholder="Katty Perry"
+                         placeholder="Katy Perry"
                         onChange={handleInputChange}
                         required
                       />

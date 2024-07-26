@@ -2,6 +2,8 @@ package vn.edu.fit.iuh.camerashop.service.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.dto.CartItemDTO;
 import vn.edu.fit.iuh.camerashop.dto.request.CartItemRequest;
@@ -23,15 +25,17 @@ public class CartItemServiceImpl implements ICartItemService {
     private final CartServiceImpl cartService;
 
     @Override
+    @Cacheable(value = "cartItem", key = "'cart_' + #cartId + '_variant_' + #variantId")
     public CartItem getCartItemByCartIdAndVariantId(long cartId, long variantId) {
         return cartItemRepository.findByCartIdAndVariantId(cartId, variantId);
     }
 
     @Override
+    @Cacheable(value = "cartItemsByCartId", key = "#cartId")
     public List<CartItemDTO> getCartItemsByCartId(long cartId) {
         List<CartItem> list = cartItemRepository.findByCartId((int) cartId);
 
-        List<CartItemDTO> cartItemDTOList = list.stream().map(cartItem -> {
+        return list.stream().map(cartItem -> {
             Variant variant = cartItem.getVariant();
 
             return CartItemDTO.builder()
@@ -47,11 +51,10 @@ public class CartItemServiceImpl implements ICartItemService {
                     .images(variant.getImages().get(0))
                     .build();
         }).toList();
-
-        return cartItemDTOList;
     }
 
     @Override
+    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, allEntries = true)
     public void addCartItem(CartItemRequest cartItemRequest) {
         CartItem existingCartItem = getCartItemByCartIdAndVariantId(cartItemRequest.getCartId(), cartItemRequest.getVariantId());
 
@@ -79,6 +82,7 @@ public class CartItemServiceImpl implements ICartItemService {
     }
 
     @Override
+    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, key = "'cart_' + #cartItemRequest.getCartId()")
     public void updateCartItem(CartItemRequest cartItemRequest) {
         CartItem cartItem = getCartItemByCartIdAndVariantId(cartItemRequest.getCartId(), cartItemRequest.getVariantId());
 
@@ -90,6 +94,7 @@ public class CartItemServiceImpl implements ICartItemService {
     }
 
     @Override
+    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, key = "'cart_' + #cartId")
     public void deleteCartItem(long cartId, long variantId) {
         CartItem cartItem = getCartItemByCartIdAndVariantId(cartId, variantId);
 

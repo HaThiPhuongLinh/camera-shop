@@ -2,6 +2,8 @@ package vn.edu.fit.iuh.camerashop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -50,7 +52,7 @@ public class Camera {
     private String size;
     private boolean hot;
 
-    @ElementCollection
+    @ElementCollection()
     @CollectionTable(name = "camera_images", joinColumns = @JoinColumn(name = "camera_id"))
     private List<String> images;
 

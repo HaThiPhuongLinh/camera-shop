@@ -64,8 +64,8 @@ const OrderModal = ({ isOpen, onRequestClose, orderId }) => {
     ));
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (!order || !status) return <div>Loading...</div>;
+  if (loading) return <div></div>;
+  if (!order || !status) return <div></div>;
 
   return (
     <Modal
@@ -75,6 +75,25 @@ const OrderModal = ({ isOpen, onRequestClose, orderId }) => {
       className="w-11/12 max-w-6xl p-4 mx-auto my-4 bg-white rounded-lg shadow-lg"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
     >
+      <button
+        onClick={onRequestClose}
+        className="text-gray-500 hover:text-gray-700 text-xl xl:ml-[1080px]"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="size-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
       <div className="overflow-y-auto h-[calc(110vh-200px)]">
         <div key={order.id}>
           <div className="py-6 text-left pl-3 border-b border-gray-300">
@@ -189,7 +208,7 @@ const OrderModal = ({ isOpen, onRequestClose, orderId }) => {
           <div className="py-2 border-t border-gray-200 p-4">
             <div className="flex justify-between flex-wrap pb-4">
               <p className="text-gray-500">Subtotal</p>
-              <p className="font-semibold">${order.total}</p>
+              <p className="font-semibold">${order.total - 30}</p>
             </div>
             <div className="flex justify-between flex-wrap pb-4">
               <p className="text-gray-500">Express Shipping</p>
@@ -198,7 +217,7 @@ const OrderModal = ({ isOpen, onRequestClose, orderId }) => {
             <div className="flex justify-between flex-wrap">
               <p className="text-gray-500">Total</p>
               <p className="text-green-900 font-semibold">
-                ${order.total + 30}
+                ${order.total}
               </p>
             </div>
             <div className="py-2 border-t border-gray-200">

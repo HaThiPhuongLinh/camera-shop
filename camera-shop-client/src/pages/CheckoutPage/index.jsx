@@ -90,7 +90,7 @@ const CheckoutPage = () => {
       try {
         const orderData = {
           userId,
-          total: totalWithShipping,
+          total: totalWithShipping - 30,
           quantity: checkoutData.reduce(
             (totalQuantity, item) => totalQuantity + item.quantity,
             0

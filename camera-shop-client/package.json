@@ -20,6 +20,7 @@
     "react-icons": "^5.2.1",
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.24.0",
+    "react-session-api": "^1.1.0",
     "react-slider": "^2.0.6",
     "recharts": "^2.13.0-alpha.4",
     "zustand": "^4.5.4",

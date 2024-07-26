@@ -120,7 +120,7 @@ export default function Customers() {
                     onClick={() => handleDeleteCustomer(customer.id)}
                     className="bg-red-500 hover:bg-red-700 text-white font-normal py-2 px-4 rounded"
                   >
-                    Delete
+                    UnActive
                   </button>
                 </td>
               </tr>

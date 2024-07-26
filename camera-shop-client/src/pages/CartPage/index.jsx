@@ -3,6 +3,7 @@ import variantApi from "../../api/variantApi";
 import useAuthStore from "../../hooks/authStore";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -19,7 +20,29 @@ const CartPage = () => {
       try {
         if (cartId) {
           const cartResponse = await cartApi.getCartItemsByCartId(cartId);
-          setCartItems(cartResponse);
+
+          const updatedCartItems = await Promise.all(
+            cartResponse.map(async (item) => {
+              const variantResponse = await variantApi.getVariantById(
+                item.variantId
+              );
+              let inStockMessage = "";
+
+              if (variantResponse.quantity === 0) {
+                inStockMessage = "Out of stock";
+              } else if (item.quantity > variantResponse.quantity) {
+                inStockMessage = `Only have ${variantResponse.quantity} in stock`;
+              }
+
+              return {
+                ...item,
+                maxQuantity: variantResponse.quantity,
+                inStockMessage: inStockMessage,
+              };
+            })
+          );
+
+          setCartItems(updatedCartItems);
         }
       } catch (error) {
         console.error("Error fetching cart items:", error);
@@ -30,41 +53,54 @@ const CartPage = () => {
   }, [cartId]);
 
   useEffect(() => {
-    const initialCheckedItems = cartItems.map((item) => item.variantId);
+    const initialCheckedItems = cartItems
+      .filter(
+        (item) => item.quantity <= item.maxQuantity && item.maxQuantity > 0
+      )
+      .map((item) => item.variantId);
     setCheckedItems(initialCheckedItems);
   }, [cartItems]);
 
   const handleQuantityChange = async (variantId, newQuantity) => {
     try {
-      if (newQuantity < 1) {
-        newQuantity = 1;
+      newQuantity = Math.max(1, newQuantity);
+
+      const variantResponse = await variantApi.getVariantById(variantId);
+
+      if (newQuantity > variantResponse.quantity) {
+        setShowMaxQuantityAlert(true);
       } else {
-        const variantResponse = await variantApi.getVariantById(variantId);
+        const cartItemData = {
+          cartId: cartId,
+          variantId: variantId,
+          quantity: newQuantity,
+        };
+        await cartApi.updateCartItem(cartItemData);
 
-        if (variantResponse.quantity >= newQuantity) {
-          const cartItemData = {
-            cartId: cartId,
-            variantId: variantId,
-            quantity: newQuantity,
-          };
-          await cartApi.updateCartItem(cartItemData);
+        const updatedCartItems = cartItems.map((item) => {
+          if (item.variantId === variantId) {
+            const inStockMessage =
+              newQuantity > variantResponse.quantity
+                ? `Only have ${variantResponse.quantity} in stock`
+                : "";
+            return { ...item, quantity: newQuantity, inStockMessage };
+          }
+          return item;
+        });
+        setCartItems(updatedCartItems);
 
-          const updatedCartItems = cartItems.map((item) =>
-            item.variantId === variantId
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
-          setCartItems(updatedCartItems);
+        const cartResponse = await cartApi.getCartByUserId(userId);
+        const totalItems = cartResponse.totalItems;
+        const totalPrice = cartResponse.totalPrice;
 
-          const cartResponse = await cartApi.getCartByUserId(userId);
-          const totalItems = cartResponse.totalItems;
-          const totalPrice = cartResponse.totalPrice;
+        useAuthStore.getState().updateTotalItems(totalItems);
+        useAuthStore.getState().updateTotalPrice(totalPrice);
 
-          useAuthStore.getState().updateTotalItems(totalItems);
-          useAuthStore.getState().updateTotalPrice(totalPrice);
-        } else {
-          setShowMaxQuantityAlert(true);
-        }
+        const updatedCheckedItems = checkedItems.filter((id) => {
+          const item = updatedCartItems.find((item) => item.variantId === id);
+          return item && item.inStockMessage === "";
+        });
+        setCheckedItems(updatedCheckedItems);
       }
     } catch (error) {
       console.error("Error updating cart item quantity:", error);
@@ -86,6 +122,9 @@ const CartPage = () => {
 
       useAuthStore.getState().updateTotalItems(totalItems);
       useAuthStore.getState().updateTotalPrice(totalPrice);
+
+      const updatedCheckedItems = checkedItems.filter((id) => id !== variantId);
+      setCheckedItems(updatedCheckedItems);
     } catch (error) {
       console.error("Error removing cart item:", error);
     }
@@ -97,7 +136,10 @@ const CartPage = () => {
 
   const handleMasterCheckboxChange = (isChecked) => {
     if (isChecked) {
-      setCheckedItems(cartItems.map((item) => item.variantId));
+      const validItems = cartItems
+        .filter((item) => item.maxQuantity > 0 && item.inStockMessage === "")
+        .map((item) => item.variantId);
+      setCheckedItems(validItems);
     } else {
       setCheckedItems([]);
     }
@@ -160,13 +202,27 @@ const CartPage = () => {
                         <div className="flex items-center mb-4 -ml-4">
                           <input
                             type="checkbox"
-                            checked={checkedItems.length === cartItems.length}
+                            checked={
+                              cartItems.length > 0 &&
+                              checkedItems.length ===
+                                cartItems.filter(
+                                  (item) =>
+                                    item.maxQuantity > 0 &&
+                                    item.inStockMessage === ""
+                                ).length &&
+                              cartItems.some(
+                                (item) =>
+                                  item.maxQuantity > 0 &&
+                                  item.inStockMessage === ""
+                              )
+                            }
                             className="w-4 h-4 rounded"
                             id="masterCheckbox"
                             onChange={(e) =>
                               handleMasterCheckboxChange(e.target.checked)
                             }
                           />
+
                           <label
                             className="ml-2 text-base font-medium"
                             htmlFor="masterCheckbox"
@@ -177,7 +233,11 @@ const CartPage = () => {
                         {cartItems.map((item) => (
                           <div
                             key={item.variantId}
-                            className="relative flex flex-wrap items-center -mx-4 mb-8 pb-2 border-b border-gray-400 border-opacity-40"
+                            className={`relative flex flex-wrap items-center -mx-4 mb-8 pb-2 border-b border-gray-400 border-opacity-40 ${
+                              item.inStockMessage
+                                ? "bg-gray-100 rounded mb-5"
+                                : ""
+                            }`}
                           >
                             <input
                               type="checkbox"
@@ -189,6 +249,10 @@ const CartPage = () => {
                                   e.target.checked
                                 )
                               }
+                              disabled={
+                                item.maxQuantity === 0 ||
+                                item.inStockMessage !== ""
+                              }
                             />
                             <a className="block mx-auto max-w-max" href="#">
                               <img
@@ -199,12 +263,18 @@ const CartPage = () => {
                             </a>
 
                             <div className="w-full md:w-auto px-4 mb-6 lg:mb-0 text-left">
-                              <a
+                            <Link
+                                to={`/camera/${item.cameraName
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}`}
+                              >
+                              <div
                                 className="block mb-5 text-xl font-heading font-medium hover:underline"
                                 href="#"
                               >
                                 {item.cameraName}
-                              </a>
+                              </div>
+                              </Link>
                               <div className="flex flex-wrap items-center">
                                 {item.source && (
                                   <p className="mr-4 mb-2 md:mb-0 text-sm font-medium">
@@ -250,11 +320,7 @@ const CartPage = () => {
                                 {/* Original Price (if discounted) */}
                                 {item.discount > 0 && (
                                   <span className="line-through text-base font-heading font-medium text-gray-500 mr-4">
-                                    $
-                                    {(
-                                      (item.price * (100 + item.discount)) /
-                                      100
-                                    ).toFixed(2)}
+                                    ${item.price.toFixed(2)}
                                   </span>
                                 )}
                                 {/* Discounted Price */}
@@ -267,32 +333,49 @@ const CartPage = () => {
                                 </span>
                               </div>
                               {/* Quantity Input */}
-                              <div className="flex items-center mr-4 ml-14">
-                                <button
-                                  className="bg-white hover:bg-gray-300 border border-gray-400 text-gray-700 font-bold py-2 px-4 rounded-l-lg"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.variantId,
-                                      item.quantity - 1
-                                    )
-                                  }
-                                >
-                                  -
-                                </button>
-                                <span className="px-6 py-2 bg-white border-t border-b border-gray-400 text-gray-700 font-bold">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  className="bg-white hover:bg-gray-300 border border-gray-400 text-gray-700 font-bold py-2 px-4 rounded-r-lg"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.variantId,
-                                      item.quantity + 1
-                                    )
-                                  }
-                                >
-                                  +
-                                </button>
+                              <div className="flex flex-col">
+                                <div className="flex items-center mr-4 ml-14">
+                                  <button
+                                    className={`border border-gray-400 text-gray-700 font-bold py-2 px-4 rounded-l-lg ${
+                                      item.maxQuantity === 0
+                                        ? "bg-gray-200 cursor-not-allowed"
+                                        : "hover:bg-gray-300 bg-white "
+                                    }`}
+                                    onClick={() =>
+                                      handleQuantityChange(
+                                        item.variantId,
+                                        item.quantity - 1
+                                      )
+                                    }
+                                    disabled={item.maxQuantity === 0}
+                                  >
+                                    -
+                                  </button>
+                                  <span className="px-6 py-2 bg-white border-t border-b border-gray-400 text-gray-700 font-bold">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    className={`border border-gray-400 text-gray-700 font-bold py-2 px-4 rounded-r-lg ${
+                                      item.maxQuantity === 0
+                                        ? "bg-gray-200 cursor-not-allowed"
+                                        : "hover:bg-gray-300 bg-white"
+                                    }`}
+                                    onClick={() =>
+                                      handleQuantityChange(
+                                        item.variantId,
+                                        item.quantity + 1
+                                      )
+                                    }
+                                    disabled={item.maxQuantity === 0}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                {item.inStockMessage && (
+                                  <div className="text-red-500 font-semibold ml-8 mt-2 text-sm ">
+                                    {item.inStockMessage}
+                                  </div>
+                                )}
                               </div>
                               {/* Total Price */}
                               <span className="text-xl font-heading font-medium text-blue-500 ml-36">
@@ -412,7 +495,9 @@ const CartPage = () => {
                         <span>Total</span>
                         <span className="flex items-center text-blue-500">
                           <span className="mr-3 text-sm">$</span>
-                          <span className="text-xl">{currentTotalPrice.toFixed(2)}</span>
+                          <span className="text-xl">
+                            {currentTotalPrice.toFixed(2)}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -423,9 +508,9 @@ const CartPage = () => {
               ${
                 currentTotalItems === 0
                   ? "text-gray-400 bg-gray-200"
-                  : "text-white bg-blue-500"
+                  : "text-white bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 "
               } 
-              hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-xl`}
+              rounded-xl`}
                         href="#"
                         onClick={() => handleCheckout()}
                       >

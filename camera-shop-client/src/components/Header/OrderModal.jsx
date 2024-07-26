@@ -98,6 +98,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
           <div className="overflow-y-auto h-[calc(100vh-200px)]">
             {orders
               .filter((order) => order.id.includes(searchTerm))
+              .sort((a, b) => new Date(b.createAt) - new Date(a.createAt))
               .map((order) => {
                 const latestStatus =
                   order.statusData[order.statusData.length - 1].status;
@@ -179,7 +180,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                           key={item.variant.id}
                           className="flex flex-wrap items-center mb-4"
                         >
-                          <div className="w-full md:w-1/3 p-4">
+                          <div className="w-full md:w-1/2 p-4">
                             <div className="flex items-center gap-4">
                               <img
                                 className="h-20 rounded-xl"
@@ -209,7 +210,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                             </div>
                           </div>
 
-                          <div className="w-full md:w-1/3 p-4">
+                          <div className="w-full md:w-1/4 p-4">
                             <div className="flex md:justify-center">
                               <p>
                                 <span>Quantity:</span>
@@ -219,7 +220,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                               </p>
                             </div>
                           </div>
-                          <div className="w-full md:w-1/3 p-4">
+                          <div className="w-full md:w-1/4 p-4">
                             <p className="text-green-900 font-semibold md:text-right">
                               $
                               {(
@@ -235,7 +236,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                     <div className="py-2 border-t border-gray-200 p-4">
                       <div className="flex justify-between flex-wrap pb-4">
                         <p className="text-gray-500">Subtotal</p>
-                        <p className="font-semibold">${order.total}</p>
+                        <p className="font-semibold">${order.total - 30}</p>
                       </div>
                       <div className="flex justify-between flex-wrap pb-4">
                         <p className="text-gray-500">Express Shipping</p>
@@ -244,7 +245,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                       <div className="flex justify-between flex-wrap">
                         <p className="text-gray-500">Total</p>
                         <p className="text-green-900 font-semibold">
-                          ${order.total + 30}
+                          ${order.total}
                         </p>
                       </div>
                       {latestStatus === "DELIVERED" && (

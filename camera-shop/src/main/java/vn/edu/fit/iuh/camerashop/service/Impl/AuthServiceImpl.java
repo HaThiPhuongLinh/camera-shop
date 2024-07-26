@@ -101,19 +101,24 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public AuthResponse refreshToken(RefreshTokenRequest refreshToken) {
         String email = jwtService.extractEmail(refreshToken.getRefreshToken());
-        User user = userRepository.findByEmail(email).get();
-        String token = "";
+
+        if (email == null) {
+            throw new BadRequestException("Invalid Refresh Token: Email extraction failed");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         if (jwtService.validateToken(refreshToken.getRefreshToken(), user)) {
-             token = jwtService.generateToken(user);
+            String token = jwtService.generateToken(user);
+            return AuthResponse.builder()
+                    .token(token)
+                    .refreshToken(refreshToken.getRefreshToken())
+                    .id(user.getId())
+                    .build();
         } else {
             throw new BadRequestException("Invalid Refresh Token");
         }
-
-        return AuthResponse.builder()
-                .token(token)
-                .refreshToken(refreshToken.getRefreshToken())
-                .id(user.getId())
-                .build();
     }
+
 }

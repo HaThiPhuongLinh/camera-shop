@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import categoryApi from "./../../api/categoryApi";
 import brandApi from "./../../api/brandApi";
 import cameraApi from "../../api/cameraApi";
+import reviewApi from "../../api/reviewApi";
 import { Link } from "react-router-dom";
 
 const ShopPage = () => {
@@ -41,9 +42,20 @@ const ShopPage = () => {
             brandApi.getAllBrands(),
             cameraApi.getAllCameras(),
           ]);
+
+        setCameras(fetchedCameras);
+
+        for (let i = 0; i < fetchedCameras.length; i++) {
+          const cameraResponse = fetchedCameras[i];
+          const reviews = await reviewApi.findReviewsByCameraId(
+            cameraResponse.id
+          );
+          fetchedCameras[i].reviews = reviews;
+        }
+
         setCategories(fetchedCategories);
         setBrands(fetchedBrands);
-        setCameras(fetchedCameras);
+
         setFilteredCameras(fetchedCameras);
         setFilteredCamerasCount(fetchedCameras.length);
       } catch (error) {
@@ -218,6 +230,15 @@ const ShopPage = () => {
     setIsLoading(false);
   };
 
+  const getAverageRating = (reviews) => {
+    if (reviews.length === 0) {
+      return null;
+    }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (totalRating / reviews.length).toFixed(1);
+  };
+
   const toggleCategory = (categoryId) => {
     const updatedCategories = selectedCategories.includes(categoryId)
       ? selectedCategories.filter((id) => id !== categoryId)
@@ -314,6 +335,29 @@ const ShopPage = () => {
       (lowest, variant) => (variant.price < lowest ? variant.price : lowest),
       variants[0].price
     );
+  };
+
+  const renderStars = (rating) => {
+    const totalStars = 5;
+    const stars = [];
+
+    for (let i = 1; i <= totalStars; i++) {
+      if (i <= rating) {
+        stars.push(
+          <span key={i} className="text-yellow-500">
+            ★
+          </span>
+        );
+      } else {
+        stars.push(
+          <span key={i} className="text-gray-300">
+            ★
+          </span>
+        );
+      }
+    }
+
+    return stars;
   };
 
   return (
@@ -768,17 +812,20 @@ const ShopPage = () => {
                                     </p>
                                     {/* Rating stars */}
                                     <div>
-                                      <span className="text-yellow-400 text-sm">
-                                        ★★★★★
-                                      </span>
+                                      {camera.reviews &&
+                                        camera.reviews.length > 0 && (
+                                          <span className="text-sm">
+                                            {renderStars(
+                                              getAverageRating(camera.reviews)
+                                            )}
+                                          </span>
+                                        )}
                                     </div>
                                   </div>
                                 </div>
                               </Link>
                               {/* Add to cart button */}
-                              <a
-                                className="ml-auto mr-2 flex items-center justify-center w-12 h-12 border rounded-lg hover:border-gray-500"
-                              >
+                              <a className="ml-auto mr-2 flex items-center justify-center w-12 h-12 border rounded-lg hover:border-gray-500">
                                 <svg
                                   width="12"
                                   height="12"

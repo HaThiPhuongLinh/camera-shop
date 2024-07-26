@@ -63,8 +63,6 @@ const EditVariantModal = ({ isOpen, onRequestClose, variantId }) => {
     const errors = {
       source: !variant.source.trim(),
       color: !variant.color.trim(),
-      quantity: !variant.quantity,
-      discount: !variant.discount,
       price: !variant.price,
       images: variant.images.some((image) => !image.trim()),
     };

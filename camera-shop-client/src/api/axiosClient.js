@@ -2,7 +2,6 @@ import axios from 'axios';
 import queryString from 'query-string';
 import useAuthStore from '../hooks/authStore';
 
-
 const axiosClient = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
     headers: {

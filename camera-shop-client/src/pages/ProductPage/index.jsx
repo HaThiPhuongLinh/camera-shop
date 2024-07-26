@@ -4,6 +4,7 @@ import cameraApi from "../../api/cameraApi";
 import cartApi from "../../api/cartApi";
 import reviewApi from "../../api/reviewApi";
 import useAuthStore from "./../../hooks/authStore";
+import Session from "react-session-api";
 
 const ProductPage = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const ProductPage = () => {
         const reviewsResponse = await reviewApi.findReviewsByCameraId(
           cameraResponse.id
         );
+
         setReviews(reviewsResponse);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -41,6 +43,15 @@ const ProductPage = () => {
 
     fetchCameraAndReviews();
   }, [name]);
+
+  const getAverageRating = (reviews) => {
+    if (reviews.length === 0) {
+      return null;
+    }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (totalRating / reviews.length).toFixed(1);
+  };
 
   const checkCartQuantity = async () => {
     try {
@@ -68,30 +79,113 @@ const ProductPage = () => {
     }
   };
 
+  // const handleAddToCart = async () => {
+  //   try {
+  //     const canAddToCart = await checkCartQuantity();
+
+  //     if (!canAddToCart) {
+  //       setShowMaxQuantityAlert(true);
+  //       return;
+  //     }
+
+  //     await cartApi.addCartItem({
+  //       cartId: cartId,
+  //       variantId: selectedVariant.id,
+  //       quantity: quantity,
+  //     });
+
+  //     const cartResponse = await cartApi.getCartByUserId(userId);
+  //     const totalItems = cartResponse.totalItems;
+  //     const totalPrice = cartResponse.totalPrice;
+
+  //     useAuthStore.getState().updateTotalItems(totalItems);
+  //     useAuthStore.getState().updateTotalPrice(totalPrice);
+  //   } catch (error) {
+  //     console.error("Error adding item to cart", error);
+  //   }
+  // };
+
   const handleAddToCart = async () => {
     try {
-      const canAddToCart = await checkCartQuantity();
+      if (!userId) {
+        const canAddToCart = checkSessionCartQuantity(
+          selectedVariant.id,
+          quantity
+        );
 
-      if (!canAddToCart) {
-        setShowMaxQuantityAlert(true);
-        return;
+        if (!canAddToCart) {
+          setShowMaxQuantityAlert(true);
+          return;
+        }
+
+        let cartItems = Session.get("cartItems") || [];
+
+        const existingCartItem = cartItems.find(
+          (item) => item.variantId === selectedVariant.id
+        );
+
+        if (existingCartItem) {
+          existingCartItem.quantity += quantity;
+        } else {
+          cartItems.push({
+            variantId: selectedVariant.id,
+            quantity: quantity,
+          });
+        }
+
+        Session.set("cartItems", cartItems);
+        console.log("Cart items saved:", Session.get('cartItems'));
+
+        useAuthStore.getState().updateTotalItems(cartItems.length);
+
+        useAuthStore
+          .getState()
+          .updateTotalPrice(calculateTotalPrice(cartItems));
+      } else {
+        const canAddToCart = await checkCartQuantity();
+
+        if (!canAddToCart) {
+          setShowMaxQuantityAlert(true);
+          return;
+        }
+
+        await cartApi.addCartItem({
+          cartId: cartId,
+          variantId: selectedVariant.id,
+          quantity: quantity,
+        });
+
+        const cartResponse = await cartApi.getCartByUserId(userId);
+        const totalItems = cartResponse.totalItems;
+        const totalPrice = cartResponse.totalPrice;
+
+        useAuthStore.getState().updateTotalItems(totalItems);
+        useAuthStore.getState().updateTotalPrice(totalPrice);
       }
-
-      await cartApi.addCartItem({
-        cartId: cartId,
-        variantId: selectedVariant.id,
-        quantity: quantity,
-      });
-
-      const cartResponse = await cartApi.getCartByUserId(userId);
-      const totalItems = cartResponse.totalItems;
-      const totalPrice = cartResponse.totalPrice;
-
-      useAuthStore.getState().updateTotalItems(totalItems);
-      useAuthStore.getState().updateTotalPrice(totalPrice);
     } catch (error) {
       console.error("Error adding item to cart", error);
     }
+  };
+
+  const calculateTotalPrice = (cartItems) => {
+    return cartItems.reduce((total, item) => {
+      const product = camera.variants.find((v) => v.id === item.variantId);
+      return total + product.price * item.quantity;
+    }, 0);
+  };
+
+  const checkSessionCartQuantity = (variantId, quantity) => {
+    const cartItems = Session.get("cartItems") || [];
+
+    const existingCartItem = cartItems.find(
+      (item) => item.variantId === variantId
+    );
+
+    if (existingCartItem) {
+      return existingCartItem.quantity + quantity <= selectedVariant.quantity;
+    }
+
+    return quantity <= selectedVariant.quantity;
   };
 
   const handleBuyNow = async () => {
@@ -298,7 +392,11 @@ const ProductPage = () => {
                           {camera.name}
                         </h2>
                         <div className="mb-4">
-                          <span className="text-yellow-400 text-xl">★★★★★</span>
+                          {reviews && reviews.length > 0 && (
+                            <span className="text-sm">
+                              {renderStars(getAverageRating(reviews))}
+                            </span>
+                          )}
                         </div>
                         <p className="inline-block mb-4 text-2xl font-bold font-heading text-blue-300">
                           <span className="mr-2">
