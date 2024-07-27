@@ -1,7 +1,10 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.dto.dto.SalesReport;
 import vn.edu.fit.iuh.camerashop.dto.request.OrderDetailRequest;
@@ -22,10 +25,7 @@ import vn.edu.fit.iuh.camerashop.service.IOrderService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +41,8 @@ public class OrderServiceImpl implements IOrderService {
     private final CartItemServiceImpl cartItemService;
     private final CartServiceImpl cartService;
     private final EmailServiceImpl emailService;
+    private final ObjectMapper objectMapper;
+    private final JmsTemplate jmsTemplate;
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -100,7 +102,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public OrderResponse createOrder(OrderRequest orderRequest) {
+    public OrderResponse createOrder(OrderRequest orderRequest) throws JsonProcessingException {
         User user = userService.getUserById(orderRequest.getUserId());
 
         List<String> outOfStockMessages = new ArrayList<>();
@@ -170,7 +172,14 @@ public class OrderServiceImpl implements IOrderService {
                 .customerPhone(savedOrder.getCustomerPhone())
                 .build();
 
-        emailService.sendOrderConfirmationEmail(user.getEmail(), orderResponse);
+        String orderResponseJson = objectMapper.writeValueAsString(orderResponse);
+
+        Map<String, Object> emailMessage = new HashMap<>();
+        emailMessage.put("recipient", user.getEmail());
+        emailMessage.put("orderResponse", orderResponseJson);
+        emailMessage.put("type", "order_confirmation");
+
+        jmsTemplate.convertAndSend("email_queue", emailMessage);
 
         return orderResponse;
     }

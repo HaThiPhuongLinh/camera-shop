@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import vn.edu.fit.iuh.camerashop.dto.request.OrderRequest;
 import vn.edu.fit.iuh.camerashop.dto.response.OrderResponse;
 import vn.edu.fit.iuh.camerashop.dto.response.RecentOrderResponse;
@@ -18,7 +19,7 @@ public interface IOrderService {
 
     OrderResponse getOrderDTOById(String orderId);
 
-    OrderResponse createOrder(OrderRequest orderRequest);
+    OrderResponse createOrder(OrderRequest orderRequest) throws JsonProcessingException;
 
     void updateOrderStatus(String orderId, Status newStatus);
 

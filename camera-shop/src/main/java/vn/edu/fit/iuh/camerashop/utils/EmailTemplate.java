@@ -52,7 +52,7 @@ public class EmailTemplate {
                     .append("<td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>")
                     .append(detail.getPrice()).append("</td>")
                     .append("<td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>")
-                    .append(detail.getDiscount()).append("</td>")
+                    .append(detail.getDiscount()).append("%").append("</td>")
                     .append("<td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>")
                     .append(String.format("$%.2f", totalPrice)).append("</td>")
                     .append("</tr>");

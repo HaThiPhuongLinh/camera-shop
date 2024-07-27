@@ -14,6 +14,8 @@ public class EmailMessageListener {
 
     @Autowired
     private EmailServiceImpl emailService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @JmsListener(destination = "email_queue")
     public void receiveMessage(Map<String, Object> emailMessage) {
@@ -25,6 +27,11 @@ public class EmailMessageListener {
                 case "registration":
                     String userName = (String) emailMessage.get("userName");
                     emailService.sendRegistrationConfirmationEmail(recipient, userName);
+                    break;
+                case "order_confirmation":
+                    String orderResponseJson = (String) emailMessage.get("orderResponse");
+                    OrderResponse orderResponse = objectMapper.readValue(orderResponseJson, OrderResponse.class);
+                    emailService.sendOrderConfirmationEmail(recipient, orderResponse);
                     break;
                 case "subscription":
                     emailService.sendSubscriptionEmail(recipient);
