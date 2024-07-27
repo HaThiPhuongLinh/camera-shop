@@ -26,13 +26,11 @@ public class CartServiceImpl implements ICartService {
     private final UserServiceImpl userService;
 
     @Override
-    @Cacheable(value = "cartByUserId", key = "#userId")
     public Cart getCartByUserId(long userId) {
         return cartRepository.findByUserId(userId);
     }
 
     @Override
-    @CacheEvict(value = "cartByUserId", key = "#cartRequest.getUserId()")
     public void createCart(CartRequest cartRequest) {
 
         Cart existingCart = getCartByUserId(cartRequest.getUserId());
@@ -53,7 +51,6 @@ public class CartServiceImpl implements ICartService {
     }
 
     @Override
-    @CacheEvict(value = "cartTotalPrice", key = "#cartId")
     public void calculateTotalPrice(long cartId) {
         List<CartItem> cartItems = cartItemRepository.findByCartId((int) cartId);
 
@@ -72,9 +69,7 @@ public class CartServiceImpl implements ICartService {
         cartRepository.save(cart);
     }
 
-
     @Override
-    @Cacheable(value = "cartById", key = "#cartId")
     public Cart getCartById(long cartId) {
         return cartRepository.findById((int) cartId)
                 .orElseThrow(() -> new NotFoundException("Cart not found"));

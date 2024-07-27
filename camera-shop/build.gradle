@@ -30,7 +30,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-//    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -43,6 +42,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.3.0'
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
     implementation 'org.springframework.boot:spring-boot-starter-mail:3.3.1'
+    implementation 'org.springframework.boot:spring-boot-starter-activemq:3.3.2'
 
 }
 

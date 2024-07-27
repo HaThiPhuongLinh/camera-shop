@@ -21,6 +21,11 @@ const orderApi = {
     return axiosClient.put(url);
   },
 
+  cancelOrder: (orderId) => {
+    const url = `/order/${orderId}`;
+    return axiosClient.delete(url);
+  },
+
   getAllOrdersByUserId: (userId) => {
     const url = `/order/user/${userId}`;
     return axiosClient.get(url);

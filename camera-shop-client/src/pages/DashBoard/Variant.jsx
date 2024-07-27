@@ -13,6 +13,8 @@ export default function Variants() {
   const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editVariantId, setEditVariantId] = useState(null);
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const variantsRef = useRef({});
 
   const fetchVariants = async () => {
@@ -71,10 +73,25 @@ export default function Variants() {
     fetchVariants();
   };
 
+  const handleSort = (column) => {
+    const order = column === sortColumn && sortOrder === "asc" ? "desc" : "asc";
+    setSortColumn(column);
+    setSortOrder(order);
+  };
+
+  const sortedVariants = [...variants].sort((a, b) => {
+    if (!sortColumn) return 0;
+    if (sortOrder === "asc") {
+      return a[sortColumn] > b[sortColumn] ? 1 : -1;
+    } else {
+      return a[sortColumn] < b[sortColumn] ? 1 : -1;
+    }
+  });
+
   const filteredVariants =
     selectedCamera === "ALL"
-      ? variants
-      : variants.filter((variant) => variant.camera.name === selectedCamera);
+      ? sortedVariants
+      : sortedVariants.filter((variant) => variant.camera.name === selectedCamera);
 
   return (
     <div className="bg-white p-4 rounded-sm border border-gray-200">
@@ -118,10 +135,20 @@ export default function Variants() {
             <th className="px-2 py-2 border-b border-gray-300">Color</th>
             <th className="px-2 py-2 border-b border-gray-300">Style</th>
             <th className="px-2 py-2 border-b border-gray-300">Set</th>
-            <th className="px-2 py-2 border-b border-gray-300">Quantity</th>
+            <th
+              className="px-2 py-2 border-b border-gray-300 cursor-pointer"
+              onClick={() => handleSort("quantity")}
+            >
+              Quantity {sortColumn === "quantity" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </th>
             <th className="px-2 py-2 border-b border-gray-300">Discount</th>
             <th className="px-2 py-2 border-b border-gray-300">Price</th>
-            <th className="px-2 py-2 border-b border-gray-300">Active</th>
+            <th
+              className="px-2 py-2 border-b border-gray-300 cursor-pointer"
+              onClick={() => handleSort("active")}
+            >
+              Active {sortColumn === "active" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+            </th>
             <th className="px-2 py-2 border-b border-gray-300">Action</th>
           </tr>
         </thead>

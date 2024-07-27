@@ -33,31 +33,61 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     setEmailError(null);
     setPasswordError(null);
-
+  
     try {
       const response = await loginApi.login({
         email,
         password,
       });
-
+  
       const userId = response.id;
-      
       localStorage.setItem("token", response.token);
       localStorage.setItem("refreshToken", response.refreshToken);
-
+  
       const cartResponse = await cartApi.getCartByUserId(userId);
       const cartId = cartResponse.id;
-      const totalItems = cartResponse.totalItems;
-      const totalPrice = cartResponse.totalPrice;
-
+  
+      const savedCartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+      
+      if (savedCartItems.length > 0) {
+        const currentCartItems = await cartApi.getCartItemsByCartId(cartId);
+  
+        for (const item of savedCartItems) {
+          const existingCartItem = currentCartItems.find(
+            (cartItem) => cartItem.variantId === item.variantId
+          );
+  
+          if (existingCartItem) {
+            const updatedQuantity = existingCartItem.quantity + item.quantity;
+            const cartItemData = {
+              cartId: cartId,
+              variantId: item.variantId,
+              quantity: updatedQuantity,
+            };
+            await cartApi.updateCartItem(cartItemData);
+          } else {
+            const cartItemData = {
+              cartId: cartId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+            };
+            await cartApi.addCartItem(cartItemData);
+          }
+        }
+  
+        localStorage.removeItem("cartItems");
+      }
+  
+      const updatedCartResponse = await cartApi.getCartByUserId(userId);
+      const totalItems = updatedCartResponse.totalItems;
+      const totalPrice = updatedCartResponse.totalPrice;
+  
       const user = await userApi.getUserById(userId);
-      console.log(user.role);
-
       login(userId, user.role, cartId, totalItems, totalPrice);
-
+  
       navigate("/");
       window.location.reload();
     } catch (error) {
@@ -72,7 +102,7 @@ const LoginPage = () => {
       }
     }
   };
-
+  
   const handleSlideChange = (index) => {
     setActiveSlide(index);
     setSlideWidth(slideRefs[index].current.offsetWidth * index);
@@ -257,6 +287,13 @@ const LoginPage = () => {
                       </Link>
                     </span>
                   </form>
+                  <div className="text-center mt-6">
+                    <Link to="/">
+                      <button className="py-3 px-5 text-sm font-semibold text-white bg-gray-800 rounded-full hover:bg-gray-700">
+                        Continue as guest
+                      </button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

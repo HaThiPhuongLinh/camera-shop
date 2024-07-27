@@ -108,7 +108,11 @@ const SignupPage = () => {
           window.location.reload();
         }, 3000);
       } catch (error) {
-        console.error("Error register:", error);
+        if (error.response && error.response.status === 400) {
+          setFormErrors({ ...formErrors, email: "emailExists" });
+        } else {
+          console.error("Error during registration:", error);
+        }
       }
     }
   };
@@ -231,7 +235,7 @@ const SignupPage = () => {
                         }`}
                         name="fullName"
                         value={formData.fullName}
-                         placeholder="Katy Perry"
+                        placeholder="Katy Perry"
                         onChange={handleInputChange}
                         required
                       />
@@ -243,7 +247,7 @@ const SignupPage = () => {
                     <div className="mb-4 text-left">
                       <label
                         className="block text-sm text-gray-900 font-semibold"
-                        htmlFor=""
+                        htmlFor="email"
                       >
                         Email
                       </label>
@@ -258,10 +262,15 @@ const SignupPage = () => {
                         onChange={handleInputChange}
                         required
                       />
-                      <p className="text-gray-500 text-xs mt-1">
-                        e.g., example@email.com
-                      </p>
+                      {formErrors.email && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {formErrors.email === "emailExists"
+                            ? "Email already exists."
+                            : "e.g., example@email.com"}
+                        </p>
+                      )}
                     </div>
+
                     <div className="mb-4">
                       <div className="flex mb-1.5 items-center justify-between">
                         <label

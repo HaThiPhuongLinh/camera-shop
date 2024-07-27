@@ -35,12 +35,12 @@ public class OrderServiceImpl implements IOrderService {
     private final OrderRepository orderRepository;
     private final UserServiceImpl userService;
     private final OrderDetailRepository orderDetailRepository;
-    private final ItemStatusRepository itemStatusRepository;
     private final UserRepository userRepository;
     private final VariantServiceImpl variantService;
     private final IItemStatusService itemStatusService;
     private final CartItemServiceImpl cartItemService;
     private final CartServiceImpl cartService;
+    private final EmailServiceImpl emailService;
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -169,6 +169,8 @@ public class OrderServiceImpl implements IOrderService {
                 .customerName(savedOrder.getCustomerName())
                 .customerPhone(savedOrder.getCustomerPhone())
                 .build();
+
+        emailService.sendOrderConfirmationEmail(user.getEmail(), orderResponse);
 
         return orderResponse;
     }

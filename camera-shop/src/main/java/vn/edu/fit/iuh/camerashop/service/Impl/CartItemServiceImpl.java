@@ -25,13 +25,11 @@ public class CartItemServiceImpl implements ICartItemService {
     private final CartServiceImpl cartService;
 
     @Override
-    @Cacheable(value = "cartItem", key = "'cart_' + #cartId + '_variant_' + #variantId")
     public CartItem getCartItemByCartIdAndVariantId(long cartId, long variantId) {
         return cartItemRepository.findByCartIdAndVariantId(cartId, variantId);
     }
 
     @Override
-    @Cacheable(value = "cartItemsByCartId", key = "#cartId")
     public List<CartItemDTO> getCartItemsByCartId(long cartId) {
         List<CartItem> list = cartItemRepository.findByCartId((int) cartId);
 
@@ -54,7 +52,6 @@ public class CartItemServiceImpl implements ICartItemService {
     }
 
     @Override
-    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, allEntries = true)
     public void addCartItem(CartItemRequest cartItemRequest) {
         CartItem existingCartItem = getCartItemByCartIdAndVariantId(cartItemRequest.getCartId(), cartItemRequest.getVariantId());
 
@@ -82,7 +79,6 @@ public class CartItemServiceImpl implements ICartItemService {
     }
 
     @Override
-    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, key = "'cart_' + #cartItemRequest.getCartId()")
     public void updateCartItem(CartItemRequest cartItemRequest) {
         CartItem cartItem = getCartItemByCartIdAndVariantId(cartItemRequest.getCartId(), cartItemRequest.getVariantId());
 
@@ -90,11 +86,12 @@ public class CartItemServiceImpl implements ICartItemService {
             cartItem.setQuantity(cartItemRequest.getQuantity());
             cartService.calculateTotalPrice(cartItemRequest.getCartId());
             cartItemRepository.save(cartItem);
+        } else {
+            addCartItem(cartItemRequest);
         }
     }
 
     @Override
-    @CacheEvict(value = {"cartItem", "cartItemsByCartId"}, key = "'cart_' + #cartId")
     public void deleteCartItem(long cartId, long variantId) {
         CartItem cartItem = getCartItemByCartIdAndVariantId(cartId, variantId);
 

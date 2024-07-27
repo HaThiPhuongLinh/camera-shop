@@ -1,5 +1,6 @@
 package vn.edu.fit.iuh.camerashop.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest orderRequest) throws JsonProcessingException {
         return ResponseEntity.ok(orderService.createOrder(orderRequest));
     }
 
@@ -48,6 +49,12 @@ public class OrderController {
                                                              @PathVariable Status newStatus) {
         orderService.updateOrderStatus(orderId, newStatus);
         return ResponseEntity.ok(new SuccessResponse("Updated order status successfully"));
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<SuccessResponse> cancelOrder(@PathVariable String orderId) {
+        orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(new SuccessResponse("Canceled order successfully"));
     }
 
     @GetMapping("/sales-report")

@@ -2,27 +2,17 @@ import { formatDateTime } from "../../utils/Format";
 import { useState, useRef, useEffect } from "react";
 import reviewApi from "../../api/reviewApi";
 import FeedbackModal from "./FeedbackModal";
+import orderApi from "./../../api/orderApi";
 
 const OrdersModal = ({ orders, onClose, orderData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [feedbackData, setFeedbackData] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
   const [reviews, setReviews] = useState({});
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
   const orderRefs = useRef({});
-
-  // useEffect(() => {
-  //   const filteredOrders = orders.filter((order) =>
-  //     order.id.includes(searchTerm)
-  //   );
-
-  //   if (filteredOrders.length > 0) {
-  //     const firstMatchingOrderId = filteredOrders[0].id;
-  //     const orderElement = orderRefs.current[firstMatchingOrderId];
-  //     if (orderElement) {
-  //       orderElement.scrollIntoView({ behavior: "smooth", block: "start" });
-  //     }
-  //   }
-  // }, [searchTerm, orders]);
 
   useEffect(() => {
     fetchReviewsForAllOrders();
@@ -56,6 +46,27 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
     const review = reviews[orderId];
     setFeedbackData(review);
     setFeedbackModalOpen(true);
+  };
+
+  const handleCancelOrder = (orderId) => {
+    setOrderToCancel(orderId);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (orderToCancel) {
+      try {
+        await orderApi.cancelOrder(orderToCancel);
+        setConfirmModalOpen(false);
+        setShowAlert(true);
+        setTimeout(() => {
+          setShowAlert(false);
+          fetchReviewsForAllOrders();
+        }, 2000);
+      } catch (error) {
+        console.error(`Failed to cancel order ${orderToCancel}:`, error);
+      }
+    }
   };
 
   return (
@@ -144,7 +155,7 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                                 : latestStatus === "DELIVERED"
                                 ? "bg-green-500 text-green-900"
                                 : latestStatus === "CANCEL"
-                                ? "bg-red-600 text-red-900"
+                                ? "bg-red-500 text-black"
                                 : "text-gray-800"
                             }`}
                           >
@@ -248,6 +259,16 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
                           ${order.total}
                         </p>
                       </div>
+                      {latestStatus === "PENDING" && (
+                        <div className="py-2 flex justify-start mt-2">
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                       {latestStatus === "DELIVERED" && (
                         <div className="py-2 flex justify-end">
                           {reviews[order.id] === null ? (
@@ -284,6 +305,56 @@ const OrdersModal = ({ orders, onClose, orderData }) => {
           orderData={orderData}
         />
       )}
+
+      {confirmModalOpen && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="relative bg-white rounded-lg p-6 w-80">
+            <h3 className="text-lg font-semibold mb-4">Confirm Cancellation</h3>
+            <p>Are you sure you want to cancel this order?</p>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setConfirmModalOpen(false)}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md mr-2 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmCancelOrder}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showAlert && (
+          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-5 rounded-md shadow-lg text-center">
+              <svg
+                viewBox="0 0 32 32"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-10 h-10 block mx-auto mb-3"
+              >
+                <g data-name="Layer 28">
+                  <path
+                    d="M16 31a15 15 0 1 1 15-15 15 15 0 0 1-15 15Zm0-28a13 13 0 1 0 13 13A13 13 0 0 0 16 3Z"
+                    fill="#4ea359"
+                    className="fill-101820 "
+                  ></path>
+                  <path
+                    d="M13.67 22a1 1 0 0 1-.73-.32l-4.67-5a1 1 0 0 1 1.46-1.36l3.94 4.21 8.6-9.21a1 1 0 1 1 1.46 1.36l-9.33 10a1 1 0 0 1-.73.32Z"
+                    fill="#4ea359"
+                    className="fill-101820 "
+                  ></path>
+                </g>
+              </svg>
+              <p className="text-lg font-semibold text-gray-800 mb-4 max-w-sm mx-auto">
+                Canceled Successfully
+              </p>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

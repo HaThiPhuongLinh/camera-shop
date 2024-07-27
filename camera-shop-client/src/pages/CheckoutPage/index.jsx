@@ -330,7 +330,7 @@ const CheckoutPage = () => {
                           </div>
                           <div className="w-auto p-2">
                             <p className="text-2xl font-semibold">
-                              $ {totalWithShipping}
+                              $ {totalWithShipping.toFixed(2)}
                             </p>
                           </div>
                         </div>

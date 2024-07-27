@@ -1,6 +1,8 @@
 package vn.edu.fit.iuh.camerashop.service.Impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.edu.fit.iuh.camerashop.config.service.JwtService;
@@ -20,15 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private CartServiceImpl cartService;
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final CartServiceImpl cartService;
+    private final JmsTemplate jmsTemplate;
 
     @Override
     public AuthResponse login(AuthRequest authRequest) {
@@ -96,6 +96,13 @@ public class AuthServiceImpl implements IAuthService {
                 .createAt(LocalDateTime.now())
                 .status(true)
                 .build());
+
+        Map<String, Object> emailMessage = new HashMap<>();
+        emailMessage.put("recipient", registrationRequest.getEmail());
+        emailMessage.put("userName", registrationRequest.getFullName());
+        emailMessage.put("type", "registration");
+
+        jmsTemplate.convertAndSend("email_queue", emailMessage);
     }
 
     @Override

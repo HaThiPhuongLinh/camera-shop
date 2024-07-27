@@ -9,7 +9,6 @@ const ProductSection = () => {
     const fetchCameras = async () => {
       try {
         const fetchCameras = await cameraApi.getHotCameras();
-        console.log(fetchCameras);
         setCameras(fetchCameras.slice(0, 4));
       } catch (error) {
         console.error("Error fetching cameras:", error);

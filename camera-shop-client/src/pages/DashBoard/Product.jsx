@@ -20,6 +20,8 @@ export default function Products() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [cameraData, setCameraData] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc"); 
 
   const fetchCameras = async () => {
     try {
@@ -96,6 +98,21 @@ export default function Products() {
     fetchCameras();
   };
 
+  const handleSort = (column) => {
+    const order = column === sortColumn && sortOrder === "asc" ? "desc" : "asc";
+    setSortColumn(column);
+    setSortOrder(order);
+  };
+
+  const sortedCameras = [...cameras].sort((a, b) => {
+    if (!sortColumn) return 0;
+    if (sortOrder === "asc") {
+      return a[sortColumn] > b[sortColumn] ? 1 : -1;
+    } else {
+      return a[sortColumn] < b[sortColumn] ? 1 : -1;
+    }
+  });
+
   return (
     <div className="container mx-auto px-4">
       <div className="flex justify-between items-center my-4">
@@ -123,23 +140,22 @@ export default function Products() {
             <th className="px-2 py-2 border-b border-gray-300">ID</th>
             <th className="px-2 py-2 border-b border-gray-300">Name</th>
             <th className="px-2 py-2 border-b border-gray-300">Brand Name</th>
-            <th className="px-2 py-2 border-b border-gray-300">
-              Category Name
+            <th className="px-2 py-2 border-b border-gray-300">Category Name</th>
+            <th className="px-2 py-2 border-b border-gray-300">Warranty Period</th>
+            <th
+              className="px-2 py-2 border-b border-gray-300 cursor-pointer"
+              onClick={() => handleSort("active")}
+            >
+              Active {sortColumn === "active" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
             </th>
-            <th className="px-2 py-2 border-b border-gray-300">
-              Warranty Period
-            </th>
-            <th className="px-2 py-2 border-b border-gray-300">Active</th>
             <th className="px-2 py-2 border-b border-gray-300">Action</th>
           </tr>
         </thead>
         <tbody>
-          {cameras
+          {sortedCameras
             .filter((camera) => {
               if (camera.name) {
-                return camera.name
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase());
+                return camera.name.toLowerCase().includes(searchTerm.toLowerCase());
               } else {
                 return false;
               }
@@ -150,24 +166,12 @@ export default function Products() {
                 className="hover:bg-gray-100 text-sm"
                 ref={(el) => (cameraRefs.current[camera.id] = el)}
               >
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {camera.id}
-                </td>
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {camera.name}
-                </td>
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {camera.brand.brandName}
-                </td>
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {camera.category.categoryName}
-                </td>
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {camera.warrantyPeriod + " months"}
-                </td>
-                <td className="px-4 py-3 border-b border-gray-300">
-                  {getActive(camera.active)}
-                </td>
+                <td className="px-4 py-3 border-b border-gray-300">{camera.id}</td>
+                <td className="px-4 py-3 border-b border-gray-300">{camera.name}</td>
+                <td className="px-4 py-3 border-b border-gray-300">{camera.brand.brandName}</td>
+                <td className="px-4 py-3 border-b border-gray-300">{camera.category.categoryName}</td>
+                <td className="px-4 py-3 border-b border-gray-300">{camera.warrantyPeriod + " months"}</td>
+                <td className="px-4 py-3 border-b border-gray-300">{getActive(camera.active)}</td>
                 <td className="px-4 py-3 border-b border-gray-300">
                   <div className="flex gap-2">
                     <button

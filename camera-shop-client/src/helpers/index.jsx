@@ -18,6 +18,12 @@ export function getOrderStatus(status) {
           {status.replaceAll("_", " ").toLowerCase()}
         </span>
       );
+      case "CANCEL":
+      return (
+        <span className="capitalize py-1 px-2 rounded-md text-sm text-red-600 bg-red-100">
+          {status.replaceAll("_", " ").toLowerCase()}
+        </span>
+      );
     default:
       return (
         <span className="capitalize py-1 px-2 rounded-md text-sm text-gray-600 bg-gray-100">

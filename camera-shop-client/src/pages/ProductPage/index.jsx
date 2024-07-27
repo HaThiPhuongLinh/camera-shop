@@ -4,7 +4,6 @@ import cameraApi from "../../api/cameraApi";
 import cartApi from "../../api/cartApi";
 import reviewApi from "../../api/reviewApi";
 import useAuthStore from "./../../hooks/authStore";
-import Session from "react-session-api";
 
 const ProductPage = () => {
   const navigate = useNavigate();
@@ -79,36 +78,10 @@ const ProductPage = () => {
     }
   };
 
-  // const handleAddToCart = async () => {
-  //   try {
-  //     const canAddToCart = await checkCartQuantity();
-
-  //     if (!canAddToCart) {
-  //       setShowMaxQuantityAlert(true);
-  //       return;
-  //     }
-
-  //     await cartApi.addCartItem({
-  //       cartId: cartId,
-  //       variantId: selectedVariant.id,
-  //       quantity: quantity,
-  //     });
-
-  //     const cartResponse = await cartApi.getCartByUserId(userId);
-  //     const totalItems = cartResponse.totalItems;
-  //     const totalPrice = cartResponse.totalPrice;
-
-  //     useAuthStore.getState().updateTotalItems(totalItems);
-  //     useAuthStore.getState().updateTotalPrice(totalPrice);
-  //   } catch (error) {
-  //     console.error("Error adding item to cart", error);
-  //   }
-  // };
-
   const handleAddToCart = async () => {
     try {
       if (!userId) {
-        const canAddToCart = checkSessionCartQuantity(
+        const canAddToCart = checkLocalStorageCartQuantity(
           selectedVariant.id,
           quantity
         );
@@ -118,7 +91,7 @@ const ProductPage = () => {
           return;
         }
 
-        let cartItems = Session.get("cartItems") || [];
+        let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
 
         const existingCartItem = cartItems.find(
           (item) => item.variantId === selectedVariant.id
@@ -133,10 +106,12 @@ const ProductPage = () => {
           });
         }
 
-        Session.set("cartItems", cartItems);
-        console.log("Cart items saved:", Session.get('cartItems'));
+        localStorage.setItem("cartItems", JSON.stringify(cartItems));
+        console.log("Cart items saved:", JSON.parse(localStorage.getItem('cartItems')));
 
-        useAuthStore.getState().updateTotalItems(cartItems.length);
+        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+        useAuthStore.getState().updateTotalItems(totalItems);
 
         useAuthStore
           .getState()
@@ -174,8 +149,8 @@ const ProductPage = () => {
     }, 0);
   };
 
-  const checkSessionCartQuantity = (variantId, quantity) => {
-    const cartItems = Session.get("cartItems") || [];
+  const checkLocalStorageCartQuantity = (variantId, quantity) => {
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
 
     const existingCartItem = cartItems.find(
       (item) => item.variantId === variantId

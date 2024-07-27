@@ -9,6 +9,7 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { cartId, userId } = useAuthStore();
   const { totalItems, totalPrice } = useAuthStore();
   const [showMaxQuantityAlert, setShowMaxQuantityAlert] = useState(false);
@@ -18,10 +19,11 @@ const CartPage = () => {
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
+        let items = [];
         if (cartId) {
           const cartResponse = await cartApi.getCartItemsByCartId(cartId);
 
-          const updatedCartItems = await Promise.all(
+          items = await Promise.all(
             cartResponse.map(async (item) => {
               const variantResponse = await variantApi.getVariantById(
                 item.variantId
@@ -41,9 +43,40 @@ const CartPage = () => {
               };
             })
           );
+        } else {
+          const savedCartItems =
+            JSON.parse(localStorage.getItem("cartItems")) || [];
 
-          setCartItems(updatedCartItems);
+          items = await Promise.all(
+            savedCartItems.map(async (item) => {
+              const variantResponse = await variantApi.getVariantById(
+                item.variantId
+              );
+              let inStockMessage = "";
+
+              if (variantResponse.quantity === 0) {
+                inStockMessage = "Out of stock";
+              } else if (item.quantity > variantResponse.quantity) {
+                inStockMessage = `Only have ${variantResponse.quantity} in stock`;
+              }
+
+              return {
+                ...item,
+                cameraName: variantResponse.camera.name,
+                source: variantResponse.source,
+                color: variantResponse.color,
+                style: variantResponse.style,
+                set: variantResponse.set,
+                discount: variantResponse.discount,
+                price: variantResponse.price,
+                maxQuantity: variantResponse.quantity,
+                images: variantResponse.images[0],
+                inStockMessage: inStockMessage,
+              };
+            })
+          );
         }
+        setCartItems(items);
       } catch (error) {
         console.error("Error fetching cart items:", error);
       }
@@ -70,37 +103,113 @@ const CartPage = () => {
       if (newQuantity > variantResponse.quantity) {
         setShowMaxQuantityAlert(true);
       } else {
-        const cartItemData = {
-          cartId: cartId,
-          variantId: variantId,
-          quantity: newQuantity,
-        };
-        await cartApi.updateCartItem(cartItemData);
+        if (cartId) {
+          const cartItemData = {
+            cartId: cartId,
+            variantId: variantId,
+            quantity: newQuantity,
+          };
+          await cartApi.updateCartItem(cartItemData);
 
-        const updatedCartItems = cartItems.map((item) => {
-          if (item.variantId === variantId) {
-            const inStockMessage =
-              newQuantity > variantResponse.quantity
-                ? `Only have ${variantResponse.quantity} in stock`
-                : "";
-            return { ...item, quantity: newQuantity, inStockMessage };
-          }
-          return item;
-        });
-        setCartItems(updatedCartItems);
+          const cartResponse = await cartApi.getCartByUserId(userId);
+          const totalItems = cartResponse.totalItems;
+          const totalPrice = cartResponse.totalPrice;
 
-        const cartResponse = await cartApi.getCartByUserId(userId);
-        const totalItems = cartResponse.totalItems;
-        const totalPrice = cartResponse.totalPrice;
+          useAuthStore.getState().updateTotalItems(totalItems);
+          useAuthStore.getState().updateTotalPrice(totalPrice);
 
-        useAuthStore.getState().updateTotalItems(totalItems);
-        useAuthStore.getState().updateTotalPrice(totalPrice);
+          const updatedCartItems = await Promise.all(
+            cartItems.map(async (item) => {
+              if (item.variantId === variantId) {
+                const inStockMessage =
+                  newQuantity > variantResponse.quantity
+                    ? `Only have ${variantResponse.quantity} in stock`
+                    : "";
+                return { ...item, quantity: newQuantity, inStockMessage };
+              }
+              return item;
+            })
+          );
 
-        const updatedCheckedItems = checkedItems.filter((id) => {
-          const item = updatedCartItems.find((item) => item.variantId === id);
-          return item && item.inStockMessage === "";
-        });
-        setCheckedItems(updatedCheckedItems);
+          const updatedCheckedItems = checkedItems.filter((id) => {
+            const item = updatedCartItems.find((item) => item.variantId === id);
+            return item && item.inStockMessage === "";
+          });
+          setCheckedItems(updatedCheckedItems);
+          setCartItems(updatedCartItems);
+        } else {
+          let savedCartItems =
+            JSON.parse(localStorage.getItem("cartItems")) || [];
+
+          savedCartItems = await Promise.all(
+            savedCartItems.map(async (item) => {
+              if (item.variantId === variantId) {
+                const inStockMessage =
+                  newQuantity > variantResponse.quantity
+                    ? `Only have ${variantResponse.quantity} in stock`
+                    : "";
+                const updatedItem = {
+                  ...item,
+                  quantity: newQuantity,
+                  inStockMessage,
+                  cameraName: variantResponse.camera.name,
+                  source: variantResponse.source,
+                  color: variantResponse.color,
+                  style: variantResponse.style,
+                  set: variantResponse.set,
+                  discount: variantResponse.discount,
+                  price: variantResponse.price,
+                  maxQuantity: variantResponse.quantity,
+                  images: variantResponse.images[0],
+                };
+                return updatedItem;
+              }
+              const variantDetail = await variantApi.getVariantById(
+                item.variantId
+              );
+              return {
+                ...item,
+                cameraName: variantDetail.camera.name,
+                source: variantDetail.source,
+                color: variantDetail.color,
+                style: variantDetail.style,
+                set: variantDetail.set,
+                discount: variantDetail.discount,
+                price: variantDetail.price,
+                maxQuantity: variantDetail.quantity,
+                images: variantDetail.images[0],
+                inStockMessage:
+                  variantDetail.quantity === 0
+                    ? "Out of stock"
+                    : item.quantity > variantDetail.quantity
+                    ? `Only have ${variantDetail.quantity} in stock`
+                    : "",
+              };
+            })
+          );
+
+          localStorage.setItem("cartItems", JSON.stringify(savedCartItems));
+
+          const totalItems = savedCartItems.reduce(
+            (sum, item) => sum + item.quantity,
+            0
+          );
+          const totalPrice = savedCartItems.reduce(
+            (sum, item) =>
+              sum + item.price * (1 - item.discount / 100) * item.quantity,
+            0
+          );
+
+          useAuthStore.getState().updateTotalItems(totalItems);
+          useAuthStore.getState().updateTotalPrice(totalPrice);
+
+          const updatedCheckedItems = checkedItems.filter((id) => {
+            const item = savedCartItems.find((item) => item.variantId === id);
+            return item && item.inStockMessage === "";
+          });
+          setCheckedItems(updatedCheckedItems);
+          setCartItems(savedCartItems);
+        }
       }
     } catch (error) {
       console.error("Error updating cart item quantity:", error);
@@ -109,19 +218,47 @@ const CartPage = () => {
 
   const handleRemoveItem = async (variantId) => {
     try {
-      await cartApi.deleteCartItem(cartId, variantId);
+      if (cartId) {
+        await cartApi.deleteCartItem(cartId, variantId);
 
-      const updatedCartItems = cartItems.filter(
-        (item) => item.variantId !== variantId
-      );
-      setCartItems(updatedCartItems);
+        const updatedCartItems = cartItems.filter(
+          (item) => item.variantId !== variantId
+        );
+        setCartItems(updatedCartItems);
 
-      const cartResponse = await cartApi.getCartByUserId(userId);
-      const totalItems = cartResponse.totalItems;
-      const totalPrice = cartResponse.totalPrice;
+        const cartResponse = await cartApi.getCartByUserId(userId);
+        const totalItems = cartResponse.totalItems;
+        const totalPrice = cartResponse.totalPrice;
 
-      useAuthStore.getState().updateTotalItems(totalItems);
-      useAuthStore.getState().updateTotalPrice(totalPrice);
+        useAuthStore.getState().updateTotalItems(totalItems);
+        useAuthStore.getState().updateTotalPrice(totalPrice);
+      } else {
+        let savedCartItems =
+          JSON.parse(localStorage.getItem("cartItems")) || [];
+
+        savedCartItems = savedCartItems.filter(
+          (item) => item.variantId !== variantId
+        );
+        localStorage.setItem("cartItems", JSON.stringify(savedCartItems));
+
+        const totalItems = savedCartItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+        const totalPrice = savedCartItems.reduce(
+          (sum, item) =>
+            sum + item.price * (1 - item.discount / 100) * item.quantity,
+          0
+        );
+
+        const updatedCartItems = cartItems.filter(
+          (item) => item.variantId !== variantId
+        );
+        setCartItems(updatedCartItems);
+
+        useAuthStore.getState().updateTotalItems(totalItems);
+        useAuthStore.getState().updateTotalPrice(totalPrice);
+      }
 
       const updatedCheckedItems = checkedItems.filter((id) => id !== variantId);
       setCheckedItems(updatedCheckedItems);
@@ -173,14 +310,27 @@ const CartPage = () => {
 
   useEffect(() => {
     updateTotalItemsAndPrice();
-  }, [checkedItems]);
+  }, [checkedItems, cartItems]);
 
   const handleCheckout = () => {
-    const checkedCartItems = cartItems.filter((item) =>
-      checkedItems.includes(item.variantId)
-    );
+    if (cartId) {
+      const checkedCartItems = cartItems.filter((item) =>
+        checkedItems.includes(item.variantId)
+      );
 
-    navigate("/cart/checkout", { state: { checkedCartItems } });
+      navigate("/cart/checkout", { state: { checkedCartItems } });
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleLogin = () => {
+    navigate("/signin");
+    setShowLoginModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowLoginModal(false);
   };
 
   return (
@@ -263,17 +413,17 @@ const CartPage = () => {
                             </a>
 
                             <div className="w-full md:w-auto px-4 mb-6 lg:mb-0 text-left">
-                            <Link
+                              <Link
                                 to={`/camera/${item.cameraName
                                   .toLowerCase()
                                   .replace(/\s+/g, "-")}`}
                               >
-                              <div
-                                className="block mb-5 text-xl font-heading font-medium hover:underline"
-                                href="#"
-                              >
-                                {item.cameraName}
-                              </div>
+                                <div
+                                  className="block mb-5 text-xl font-heading font-medium hover:underline"
+                                  href="#"
+                                >
+                                  {item.cameraName}
+                                </div>
                               </Link>
                               <div className="flex flex-wrap items-center">
                                 {item.source && (
@@ -493,11 +643,9 @@ const CartPage = () => {
                     <div className="sm:pr-3 lg:px-3 mb-10 sm:mb-0 w-full sm:w-1/2 lg:w-4/12 xl:w-3/12">
                       <div className="flex items-center justify-between py-4 px-10 leading-8 bg-gray-300 font-heading font-medium rounded-3xl">
                         <span>Total</span>
-                        <span className="flex items-center text-blue-500">
-                          <span className="mr-3 text-sm">$</span>
-                          <span className="text-xl">
-                            {currentTotalPrice.toFixed(2)}
-                          </span>
+                        <span className="flex items-center text-blue-500 text-2xl">
+                          <span className="mr-3 text-2xl">$</span>
+                          {currentTotalPrice.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -524,6 +672,28 @@ const CartPage = () => {
           </div>
         </nav>
       </header>
+      {showLoginModal && (
+        <div className="fixed bottom-0 top-0 left-0 w-full bg-black bg-opacity-10 text-white flex justify-center items-center p-4 shadow-lg z-50">
+          <div className="bg-gray-800 p-6 rounded-lg text-center">
+            <h2 className="text-xl font-semibold mb-4">Please Log In</h2>
+            <p className="mb-4">
+              You need to log in to proceed with the checkout.
+            </p>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+              onClick={handleLogin}
+            >
+              Log In
+            </button>
+            <button
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleCloseModal}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
