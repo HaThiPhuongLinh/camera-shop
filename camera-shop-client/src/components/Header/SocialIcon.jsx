@@ -7,7 +7,7 @@ import itemStatusApi from "../../api/itemStatusApi";
 import UserModal from "./UserModal";
 import OrdersModal from "./OrderModal";
 
-const SocialIcon = ({ src, index }) => {
+const SocialIcon = ({ src, index, onClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
@@ -53,6 +53,7 @@ const SocialIcon = ({ src, index }) => {
     } else {
       toggleDropdown();
     }
+    onClick();
   };
 
   const handleAccountClick = () => {

@@ -60,10 +60,10 @@ const HomePage = () => {
               <Link to="/camera">SHOP ALL </Link>
             </button>
           </section>
-          <section className="flex flex-col justify-center self-center mt-16 mb-2 w-full max-w-[1204px] max-md:mt-10 max-md:max-w-full">
-            <div className="pr-16 rounded-lg bg-zinc-900 max-md:pr-5 max-md:max-w-full">
+          <section className="flex flex-col justify-center self-center mt-16 mb-2 w-full max-w-6xl max-md:mt-10 max-md:max-w-full">
+            <div className="rounded-lg bg-zinc-900 max-md:max-w-full xl:pr-16">
               <div className="flex gap-5 max-md:flex-col max-md:gap-0">
-                <div className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
+                <div className="flex flex-col w-6/12 max-md:w-full">
                   <img
                     loading="lazy"
                     src="https://cdn.builder.io/api/v1/image/assets/TEMP/76028201e2a0f2374229831867c23222000b12ae437f52756a13e3a429476528?apiKey=53e4b1c7e8314bb0af1a0d344422a86a&"
@@ -71,12 +71,12 @@ const HomePage = () => {
                     alt="New arrivals showcase"
                   />
                 </div>
-                <div className="flex flex-col ml-5 w-6/12 max-md:ml-0 max-md:w-full">
+                <div className="flex flex-col w-6/12 max-md:w-full">
                   <div className="flex flex-col justify-center self-stretch my-auto text-white max-md:mt-10 max-md:max-w-full">
                     <h4 className="text-lg font-medium tracking-wider max-md:max-w-full">
                       NEW ARRIVALS
                     </h4>
-                    <h2 className="mt-10 text-4xl font-semibold tracking-wider max-md:mt-10 max-md:max-w-full">
+                    <h2 className="mt-10 text-4xl max-xl:text-2xl font-semibold tracking-wider max-md:mt-10 max-md:max-w-full">
                       Discover the Latest Cameras
                     </h2>
                   </div>

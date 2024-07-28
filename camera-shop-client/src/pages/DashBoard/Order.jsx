@@ -29,6 +29,7 @@ export default function Order() {
           return { ...order, statusData };
         })
       );
+      ordersWithStatus.sort((a, b) => new Date(b.createAt) - new Date(a.createAt));
       setOrders(ordersWithStatus);
     } catch (error) {
       console.error("Error fetching orders:", error);

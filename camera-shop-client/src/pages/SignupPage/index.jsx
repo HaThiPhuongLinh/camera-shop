@@ -106,7 +106,7 @@ const SignupPage = () => {
           setShowSuccessPopup(false);
           navigate("/signin");
           window.location.reload();
-        }, 3000);
+        }, 2000);
       } catch (error) {
         if (error.response && error.response.status === 400) {
           setFormErrors({ ...formErrors, email: "emailExists" });

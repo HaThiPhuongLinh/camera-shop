@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import categoryApi from "./../../api/categoryApi";
+import Loading from "./../Header/Loading";
 
 const CategorySection = () => {
   const [categories, setCategories] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -13,6 +15,8 @@ const CategorySection = () => {
         setCategories(fetchedCategories);
       } catch (error) {
         console.error("Error fetching categories", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCategories();
@@ -30,6 +34,10 @@ const CategorySection = () => {
     }
   };
 
+  if (loading) {
+    return <Loading />;
+  }
+
   const visibleCategories = categories.slice(startIndex, startIndex + 4);
 
   return (
@@ -37,23 +45,27 @@ const CategorySection = () => {
       <div className="flex gap-5 w-full text-3xl font-semibold tracking-widest text-white whitespace-nowrap max-md:flex-wrap max-md:max-w-full">
         <h2 className="flex-auto my-auto text-left">Categories</h2>
       </div>
-      <div className="self-center px-5 mt-8 w-full max-w-[1205px] max-md:max-w-full">
-        <div className="flex gap-4 max-md:flex-col max-md:gap-0">
-          {visibleCategories.map((category, index) => (
-            <div
-              key={index}
-              className={`flex flex-col w-[25%] max-md:ml-0 max-md:w-full 
+      {visibleCategories.length === 0 ? (
+        <Loading />
+      ) : (
+        <div className="self-center px-5 mt-8 w-full max-w-[1205px] max-md:max-w-full">
+          <div className="flex gap-4 max-md:flex-col max-md:gap-0">
+            {visibleCategories.map((category, index) => (
+              <div
+                key={index}
+                className={`flex flex-col w-[25%] max-md:ml-0 max-md:w-full 
               }`}
-            >
-              <CategoryCard
-                key={category.id}
-                title={category.categoryName}
-                imageSrc={category.image}
-              />
-            </div>
-          ))}
+              >
+                <CategoryCard
+                  key={category.id}
+                  title={category.categoryName}
+                  imageSrc={category.image}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex justify-between mt-5">
         <button
           onClick={handlePrev}

@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import postApi from "../../api/postApi";
+import Loading from "../../components/Header/Loading";
 
 const BlogPage = () => {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    postApi
-      .getAllPosts()
-      .then((response) => {
+    const fetchPosts = async () => {
+      try {
+        const response = await postApi.getAllPosts();
         setPosts(response);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching posts:", error);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col bg-white">
@@ -28,57 +38,63 @@ const BlogPage = () => {
                     <span className="font-serif italic">Articles</span>
                   </h1>
                 </div>
-                <div className="flex flex-wrap -mx-4 mb-18 text-left">
-                  {/* Large article */}
-                  {posts.length > 0 && (
-                    <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0">
-                      <a
-                        className="block group w-full"
-                        href={`/blog/${posts[0].id}`}
-                      >
-                        <img
-                          className="block w-full mb-5 rounded-md"
-                          src={posts[0].image}
-                          alt={posts[0].title}
-                        />
-                        <span className="block text-gray-500 mb-5">
-                          {new Date(posts[0].publishedAt).toLocaleDateString()}
-                        </span>
-                        <h4 className="text-3xl font-semibold text-gray-900 group-hover:text-orange-900 mb-5">
-                          {posts[0].title}
-                        </h4>
-                        <p className="max-w-xl text-lg text-gray-500">
-                          {posts[0].summary}
-                        </p>
-                      </a>
-                    </div>
-                  )}
-
-                  {/* Small articles */}
-                  <div className="w-full lg:w-1/2 px-4 text-left">
-                    {posts.slice(1).map((post) => (
-                      <a
-                        className="md:flex group mb-8"
-                        href={`/blog/${post.id}`}
-                        key={post.id}
-                      >
-                        <img
-                          className="w-48 h-40 object-cover rounded-md"
-                          src={post.image}
-                          alt={post.title}
-                        />
-                        <div className="mt-4 md:mt-0 md:ml-6 pt-2">
-                          <span className="block text-gray-500 mb-2">
-                            {new Date(post.publishedAt).toLocaleDateString()}
+                {posts.length === 0 ? (
+                  <Loading />
+                ) : (
+                  <div className="flex flex-wrap -mx-4 mb-18 text-left">
+                    {/* Large article */}
+                    {posts.length > 0 && (
+                      <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0">
+                        <a
+                          className="block group w-full"
+                          href={`/blog/${posts[0].id}`}
+                        >
+                          <img
+                            className="block w-full mb-5 rounded-md"
+                            src={posts[0].image}
+                            alt={posts[0].title}
+                          />
+                          <span className="block text-gray-500 mb-5">
+                            {new Date(
+                              posts[0].publishedAt
+                            ).toLocaleDateString()}
                           </span>
-                          <h4 className="text-xl font-semibold text-gray-900 group-hover:text-orange-900">
-                            {post.title}
+                          <h4 className="text-3xl font-semibold text-gray-900 group-hover:text-orange-900 mb-5">
+                            {posts[0].title}
                           </h4>
-                        </div>
-                      </a>
-                    ))}
+                          <p className="max-w-xl text-lg text-gray-500">
+                            {posts[0].summary}
+                          </p>
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Small articles */}
+                    <div className="w-full lg:w-1/2 px-4 text-left">
+                      {posts.slice(1).map((post) => (
+                        <a
+                          className="md:flex group mb-8"
+                          href={`/blog/${post.id}`}
+                          key={post.id}
+                        >
+                          <img
+                            className="w-48 h-40 object-cover rounded-md"
+                            src={post.image}
+                            alt={post.title}
+                          />
+                          <div className="mt-4 md:mt-0 md:ml-6 pt-2">
+                            <span className="block text-gray-500 mb-2">
+                              {new Date(post.publishedAt).toLocaleDateString()}
+                            </span>
+                            <h4 className="text-xl font-semibold text-gray-900 group-hover:text-orange-900">
+                              {post.title}
+                            </h4>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </section>
           </div>

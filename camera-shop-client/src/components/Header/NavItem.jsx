@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 
-const NavItem = ({ label, link }) => (
+const NavItem = ({ label, link, onClick }) => (
   <NavLink
     to={link}
     className={({ isActive }) =>
@@ -9,6 +9,7 @@ const NavItem = ({ label, link }) => (
         isActive ? "text-red-800 font-bold rounded-md" : "text-black font-normal"
       } hover:bg-gray-100 hover:rounded-md p-2`
     }
+    onClick={onClick}
   >
     {label}
   </NavLink>
