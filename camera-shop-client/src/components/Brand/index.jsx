@@ -22,10 +22,6 @@ const BrandSection = () => {
     fetchBrands();
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     <section className="flex flex-col w-full max-md:max-w-full">
       <h2 className="w-full text-3xl font-semibold tracking-widest text-white max-md:max-w-full text-left">

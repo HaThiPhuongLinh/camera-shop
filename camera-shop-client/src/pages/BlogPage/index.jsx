@@ -21,10 +21,6 @@ const BlogPage = () => {
     fetchPosts();
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     <div className="flex flex-col bg-white">
       <header className="flex flex-col pt-5 pb-5 border border-black border-solid shadow-sm bg-[#2E2F31] rounded-[100px_100px_0px_0px] max-md:max-w-full">

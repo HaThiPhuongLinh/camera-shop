@@ -34,10 +34,6 @@ const CategorySection = () => {
     }
   };
 
-  if (loading) {
-    return <Loading />;
-  }
-
   const visibleCategories = categories.slice(startIndex, startIndex + 4);
 
   return (
